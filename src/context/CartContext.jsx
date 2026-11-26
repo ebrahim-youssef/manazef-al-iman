@@ -68,6 +68,7 @@ export function CartProvider({ children }) {
     const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
     return {
       items,
+      hasLoaded,
       itemCount,
       addItem: (product, quantity = 1) => dispatch({ type: 'ADD', payload: { product, quantity } }),
       removeItem: (id) => dispatch({ type: 'REMOVE', payload: { id } }),
@@ -77,7 +78,7 @@ export function CartProvider({ children }) {
         dispatch({ type: 'CLEAR' });
       },
     };
-  }, [items]);
+  }, [hasLoaded, items]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
