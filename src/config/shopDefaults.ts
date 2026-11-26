@@ -12,6 +12,14 @@ export const shopDefaults = {
   delivery_areas: [],
 }
 
+export function formatEgyptianMobile(number: string) {
+  return number.startsWith('20') ? `0${number.slice(2)}` : number
+}
+
 export function mergeShopSettings(settings: Partial<typeof shopDefaults> | null | undefined) {
-  return { ...shopDefaults, ...settings }
+  const merged = { ...shopDefaults, ...settings }
+  for (const key of Object.keys(shopDefaults) as (keyof typeof shopDefaults)[]) {
+    if (merged[key] === null || merged[key] === '') merged[key] = shopDefaults[key] as never
+  }
+  return merged
 }

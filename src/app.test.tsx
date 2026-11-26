@@ -8,7 +8,6 @@ import { useCart } from './context/useCart'
 import { products } from './data/products'
 import { getCatalog } from './data/catalog'
 import { createOrder } from './data/orders'
-import { shopDefaults } from './config/shopDefaults'
 
 // The first /admin render loads supabase-js, which can pass the 1 s default under full-suite load.
 const ADMIN_FIRST_RENDER_TIMEOUT_MS = 5_000
@@ -37,6 +36,7 @@ const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixtu
   opening_hours_text: 'يوميًا 9 ص - 10 م',
   facebook_url: 'https://facebook.com',
   instagram_url: 'https://instagram.com',
+  tiktok_url: 'https://tiktok.com/@shop',
   delivery_areas: ['القاهرة'],
 } }))
 
@@ -69,6 +69,16 @@ afterEach(() => {
 })
 
 describe('store routes', () => {
+  it('uses the current shop settings in the header and footer', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
+    render(<RouterProvider router={router} />)
+    const headerLink = await screen.findByRole('link', { name: 'تواصل معنا عبر واتساب' })
+    expect(headerLink).toHaveAttribute('href', 'https://wa.me/201012345678')
+    expect(screen.getByRole('link', { name: 'تيك توك' })).toHaveAttribute('href', 'https://tiktok.com/@shop')
+    expect(screen.getByRole('link', { name: '0100 000 0000' })).toHaveAttribute('href', 'tel:01000000000')
+    expect(screen.getByRole('link', { name: '01012345678' })).toHaveAttribute('href', 'https://wa.me/201012345678')
+  })
   it.each([
     ['/', 'كل احتياجات بيتك في مكان واحد'],
     ['/category/cleaners', 'منظفات'],
@@ -99,7 +109,7 @@ describe('store routes', () => {
     render(<RouterProvider router={router} />)
     expect(await screen.findByText('يمكننا مساعدتك في طلب منتجاتك')).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'تواصل معنا على واتساب' }).map((link) => link.getAttribute('href')))
-      .toContain(`https://wa.me/${shopDefaults.whatsapp_number}`)
+      .toContain(`https://wa.me/${shopSettingsFixture.whatsapp_number}`)
   })
 })
 

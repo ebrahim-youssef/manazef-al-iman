@@ -32,7 +32,7 @@ describe('visit us section', () => {
   })
 
   it('uses the address when either map coordinate is missing', () => {
-    render(<VisitUs settings={mergeShopSettings({ address: 'شارع 26 يوليو، القاهرة', map_lat: 30.04, map_lng: null })} />)
+    render(<VisitUs settings={{ ...mergeShopSettings({ address: 'شارع 26 يوليو، القاهرة', map_lat: 30.04 }), map_lng: null }} />)
 
     expect(screen.getByTitle('خريطة موقع منظفات الإيمان')).toHaveAttribute(
       'src',

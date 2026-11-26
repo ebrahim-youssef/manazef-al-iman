@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link, useLoaderData, useNavigate } from '@tanstack/react-router';
 import { List, MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
 import { useCart } from '../context/useCart';
 import { categories } from '../data/categories';
-import { shopDefaults } from '../config/shopDefaults';
 import './Header.css';
 
-const WHATSAPP_URL = `https://wa.me/${shopDefaults.whatsapp_number}`;
-
 export default function Header() {
+  const settings = useLoaderData({ from: '__root__' });
   const { itemCount } = useCart();
   const [query, setQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -54,7 +52,7 @@ export default function Header() {
         </button>
 
         <Link to="/" className="brand" onClick={closeAll}>
-          منظفات الإيمان
+          {settings.shop_name}
         </Link>
 
         <nav id="site-nav" className={`site-nav ${isMenuOpen ? 'open' : ''}`} aria-label="الأقسام">
@@ -74,7 +72,7 @@ export default function Header() {
               </li>
             ))}
           </ul>
-          <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="nav-whatsapp">
+          <a href={`https://wa.me/${settings.whatsapp_number}`} target="_blank" rel="noreferrer" className="nav-whatsapp">
             <WhatsappLogo aria-hidden="true" />
             تواصل معنا عبر واتساب
           </a>
