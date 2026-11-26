@@ -44,6 +44,9 @@ export default function ProductCard({ product }) {
             <span className="product-card-old price">{formatEGP(product.originalPrice)}</span>
           ) : null}
         </div>
+        {product.fridayPrice !== null && !product.isFridayActive && (
+          <p className="product-card-friday-price">الجمعة بـ {formatEGP(product.fridayPrice)}</p>
+        )}
         <p className="product-card-unit">
           {`لكل ${product.unit}`}
         </p>

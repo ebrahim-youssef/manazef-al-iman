@@ -68,6 +68,9 @@ export default function ProductDetails() {
                 <span className="detail-price price">{formatEGP(product.price)}</span>
                 {product.originalPrice ? <span className="detail-old price">{formatEGP(product.originalPrice)}</span> : null}
               </div>
+              {product.fridayPrice !== null && !product.isFridayActive && (
+                <p className="detail-friday-price">الجمعة بـ {formatEGP(product.fridayPrice)}</p>
+              )}
               <p className="detail-unit">وحدة البيع: <strong>{product.unit}</strong> {product.unitType === 'wholesale' ? '(سعر الكرتونة كاملة)' : '(سعر الوحدة)'}</p>
               {product.cartonSize ? (
                 <p className="detail-unit">محتوى الكرتونة: <strong>{product.cartonSize} عبوة</strong></p>

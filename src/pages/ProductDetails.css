@@ -53,6 +53,12 @@
   color: #6b726c;
   text-decoration: line-through;
 }
+.detail-friday-price {
+  color: var(--primary-dark);
+  font-weight: 600;
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
 .detail-unit {
   color: #4a514b;
   margin-bottom: 6px;
