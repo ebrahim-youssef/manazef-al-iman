@@ -10,6 +10,9 @@ import { getCatalog } from './data/catalog'
 import { createOrder } from './data/orders'
 import { shopDefaults } from './config/shopDefaults'
 
+// The first /admin render loads supabase-js, which can pass the 1 s default under full-suite load.
+const ADMIN_FIRST_RENDER_TIMEOUT_MS = 5_000
+
 type TurnstileOptions = Parameters<NonNullable<Window['turnstile']>['render']>[1]
 
 const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixture: {
@@ -84,7 +87,7 @@ describe('store routes', () => {
     router.update({ history: createMemoryHistory({ initialEntries: ['/admin'] }) })
     render(<RouterProvider router={router} />)
 
-    expect(await screen.findByRole('heading', { name: 'دخول المالك' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'دخول المالك' }, { timeout: ADMIN_FIRST_RENDER_TIMEOUT_MS })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /سلة التسوق/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'زورنا' })).not.toBeInTheDocument()
   })

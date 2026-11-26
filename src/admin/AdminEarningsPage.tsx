@@ -58,7 +58,7 @@ export default function AdminEarningsPage() {
             <ul className="admin-earnings-list">
               {periods.map(({ key, label }) => (
                 <li className="admin-earnings-card" key={key}>
-                  <div><h2>{label}</h2><p>{new Intl.NumberFormat('ar-EG').format(summary[key].orderCount)} طلب</p></div>
+                  <div><h2>{label}</h2><p>الطلبات: {new Intl.NumberFormat('ar-EG').format(summary[key].orderCount)}</p></div>
                   <strong className="admin-earnings-total">{formatOrderTotal(summary[key].totalEgp)}</strong>
                 </li>
               ))}

@@ -100,19 +100,18 @@ export default function AdminLayout({ supabaseUrl, anonKey }: { supabaseUrl: str
     <AdminClientContext.Provider value={client}>
       <div className="admin-layout" dir="rtl">
         <header className="admin-layout-header">
-          <div className="admin-layout-topline">
-            <span className="admin-layout-brand"><ClipboardText size={22} weight="duotone" /> إدارة المتجر</span>
+          <div className="admin-layout-bar">
+            <nav className="admin-tabs" aria-label="أقسام الإدارة">
+              {adminTabs.map(({ label, to }) => (
+                <Link key={to} to={to} activeOptions={{ exact: true }} activeProps={{ 'aria-current': 'page' }}>
+                  {label}
+                </Link>
+              ))}
+            </nav>
             <button className="admin-logout-button" type="button" onClick={logout} disabled={busy} aria-label="تسجيل الخروج">
               <SignOut size={19} /><span>تسجيل الخروج</span>
             </button>
           </div>
-          <nav className="admin-tabs" aria-label="أقسام الإدارة">
-            {adminTabs.map(({ label, to }) => (
-              <Link key={to} to={to} activeOptions={{ exact: true }} activeProps={{ 'aria-current': 'page' }}>
-                {label}
-              </Link>
-            ))}
-          </nav>
         </header>
         {authError && <p className="admin-layout-error" role="alert">{authError}</p>}
         <Outlet />

@@ -3,38 +3,29 @@
 }
 
 .admin-layout-header {
-  padding: 12px 12px 0;
+  padding: 4px 12px 0;
   border-bottom: 1px solid var(--border);
   background: var(--white);
 }
 
-.admin-layout-topline,
-.admin-tabs {
+.admin-layout-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   width: min(100%, 760px);
   margin-inline: auto;
 }
 
-.admin-layout-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 10px;
-}
-
-.admin-layout-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  color: var(--primary-dark);
-  font-weight: 700;
+.admin-layout-bar .admin-logout-button {
+  flex: 0 0 auto;
+  min-height: 38px;
 }
 
 .admin-tabs {
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
+  gap: 2px;
 }
 
 .admin-tabs a {
