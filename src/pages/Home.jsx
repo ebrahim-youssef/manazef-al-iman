@@ -31,8 +31,8 @@ export default function Home() {
   const catalog = Route.useLoaderData();
   if (catalog.unavailable) return <CatalogUnavailable />;
   const { categories, products } = catalog;
-  const fridayOffers = products.filter((product) => product.originalPrice && product.originalPrice > product.price).slice(0, PRODUCTS_PER_SECTION);
-  const offerIds = new Set(fridayOffers.map((p) => p.id));
+  const saleOffers = products.filter((product) => product.isSaleActive).slice(0, PRODUCTS_PER_SECTION);
+  const offerIds = new Set(saleOffers.map((p) => p.id));
   const bestSellers = products
     .filter((p) => p.bestSeller && !offerIds.has(p.id))
     .slice(0, PRODUCTS_PER_SECTION);
@@ -52,7 +52,7 @@ export default function Home() {
         </div>
       </section>
 
-      {fridayOffers.length > 0 && (
+      {saleOffers.length > 0 && (
         <section className="section section-alt">
           <div className="container">
             <SectionHeader
@@ -61,7 +61,7 @@ export default function Home() {
               linkTo="/category/offers"
               linkLabel="كل العروض"
             />
-            <ProductGrid products={fridayOffers} />
+            <ProductGrid products={saleOffers} />
           </div>
         </section>
       )}

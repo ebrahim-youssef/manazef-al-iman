@@ -1,5 +1,5 @@
 begin;
-select plan(28);
+select plan(32);
 
 insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values ('00000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'customer@test.local', '', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now())
@@ -46,5 +46,9 @@ select lives_ok($$update public.categories set name = 'updated' where id = 'owne
 select lives_ok($$delete from public.categories where id = 'owner-test'$$, 'owner deletes category');
 select lives_ok($$update public.products set name = name where id = 'cos-1'$$, 'owner updates products');
 select lives_ok($$update public.settings set shop_name = 'updated' where id$$, 'owner updates settings');
+select throws_ok($$update public.products set sale_type = 'price', sale_value = price_egp where id = 'cos-1'$$, '23514', 'new row for relation "products" violates check constraint "products_sale_price_below_original"', 'sale price must be below the original price');
+select throws_ok($$update public.products set sale_type = 'percent', sale_value = 0 where id = 'cos-1'$$, '23514', 'new row for relation "products" violates check constraint "products_sale_percent_range"', 'sale percent must be at least one');
+select throws_ok($$update public.products set sale_type = 'percent', sale_value = 91 where id = 'cos-1'$$, '23514', 'new row for relation "products" violates check constraint "products_sale_percent_range"', 'sale percent cannot exceed ninety');
+select throws_ok($$update public.products set sale_type = 'price', sale_value = 50, sale_starts_at = now(), sale_ends_at = now() where id = 'cos-1'$$, '23514', 'new row for relation "products" violates check constraint "products_sale_dates_order"', 'sale start must be before its end');
 select * from finish();
 rollback;
