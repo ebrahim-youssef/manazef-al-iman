@@ -1,9 +1,12 @@
 import { createRootRoute } from '@tanstack/react-router'
 import RootRouteDocument from '../RootRouteDocument'
-import { getShopSettings } from '../data/settings'
+import { getNavigationCategories, getShopSettings } from '../data/settings'
 
 export const Route = createRootRoute({
-  loader: () => getShopSettings(),
+  loader: async () => {
+    const [settings, categories] = await Promise.all([getShopSettings(), getNavigationCategories()])
+    return { ...settings, categories }
+  },
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

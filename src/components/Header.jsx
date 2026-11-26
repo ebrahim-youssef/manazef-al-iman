@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Link, useLoaderData, useNavigate } from '@tanstack/react-router';
 import { List, MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
 import { useCart } from '../context/useCart';
-import { categories } from '../data/categories';
 import './Header.css';
 
 export default function Header() {
   const settings = useLoaderData({ from: '__root__' });
+  const { categories } = settings;
   const { itemCount } = useCart();
   const [query, setQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -6,10 +6,11 @@ import { detailImagePath } from '../utils/imageUrl'
 import { useAdminClient } from './AdminClientContext'
 import { filterProducts, formatCairoDateTime, parseCairoDateTime, productImagePaths, validateProduct, writeProductWithImages, type ProductDraft } from './adminProducts'
 import { makeProductImages } from './productImage'
+import AdminCategories from './AdminCategoriesSection'
 import './AdminProductsPage.css'
 
 type Product = ProductDraft & { created_at: string; updated_at: string }
-type Category = { id: string; name: string }
+type Category = { id: string; name: string; image_path: string; sort_order: number }
 
 const emptyProduct: ProductDraft = {
   id: '', category_id: '', name: '', brand: '', unit: '', description: '', image_path: '', price_egp: Number.NaN,
@@ -40,7 +41,7 @@ export default function AdminProductsPage() {
   const loadProducts = useCallback(async () => {
     const [{ data, error: productError }, { data: categoryData, error: categoryError }] = await Promise.all([
       client.from('products').select('*').order('created_at', { ascending: false }),
-      client.from('categories').select('id, name').order('sort_order'),
+      client.from('categories').select('id, name, image_path, sort_order').order('sort_order'),
     ])
     setLoading(false)
     if (productError || categoryError) {
@@ -213,6 +214,7 @@ export default function AdminProductsPage() {
           <div className="admin-header-copy"><h1>المنتجات</h1><p>إدارة المنتجات والأسعار والصور</p></div>
           <button className="admin-primary-button admin-products-add" type="button" onClick={() => openProduct()}><Plus size={18} /> إضافة</button>
         </header>
+        <AdminCategories categories={categories} reload={loadProducts} />
         {error && <p className="admin-error" role="alert">{error}</p>}
         <div className="admin-products-filters">
           <label className="admin-search"><span className="admin-visually-hidden">البحث بالاسم</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ابحث باسم المنتج" /></label>

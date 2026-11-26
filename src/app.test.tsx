@@ -47,6 +47,7 @@ vi.mock('./data/catalog', () => ({
 
 vi.mock('./data/settings', () => ({
   getShopSettings: vi.fn().mockResolvedValue(shopSettingsFixture),
+  getNavigationCategories: vi.fn().mockResolvedValue(catalogFixture.categories),
 }))
 
 vi.mock('./data/orders', () => ({

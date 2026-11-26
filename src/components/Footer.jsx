@@ -1,11 +1,11 @@
 import { Link, useLoaderData } from '@tanstack/react-router';
 import { FacebookLogo, InstagramLogo, TiktokLogo, WhatsappLogo } from '@phosphor-icons/react';
-import { categories } from '../data/categories';
 import { formatEgyptianMobile } from '../config/shopDefaults';
 import './Footer.css';
 
 export default function Footer() {
   const settings = useLoaderData({ from: '__root__' });
+  const { categories } = settings;
   return (
     <footer className="site-footer">
       <div className="container footer-grid">

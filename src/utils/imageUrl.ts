@@ -1,5 +1,5 @@
 export function detailImagePath(cardPath: string) {
-  return /^products\/[^/]+\.webp$/i.test(cardPath) ? cardPath.replace(/\.webp$/i, '-detail.webp') : cardPath
+  return /^(products|categories)\/[^/]+\.webp$/i.test(cardPath) ? cardPath.replace(/\.webp$/i, '-detail.webp') : cardPath
 }
 
 export function getImageUrl(path: string | null | undefined, size: 'card' | 'detail' = 'card', baseUrl = import.meta.env.VITE_SUPABASE_URL || '') {

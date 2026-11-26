@@ -34,7 +34,7 @@ vi.mock('../data/catalog', () => ({
 
 vi.mock('../data/settings', async () => {
   const { mergeShopSettings } = await import('../config/shopDefaults')
-  return { getShopSettings: vi.fn().mockResolvedValue(mergeShopSettings(null)) }
+  return { getShopSettings: vi.fn().mockResolvedValue(mergeShopSettings(null)), getNavigationCategories: vi.fn().mockResolvedValue(catalogFixture.categories) }
 })
 
 const product = (overrides: Record<string, unknown> = {}) => ({
