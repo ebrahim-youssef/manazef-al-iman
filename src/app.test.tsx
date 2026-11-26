@@ -8,7 +8,7 @@ import { useCart } from './context/useCart'
 import { products } from './data/products'
 import { getCatalog } from './data/catalog'
 
-const { catalogFixture } = vi.hoisted(() => ({ catalogFixture: {
+const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixture: {
   unavailable: false as const,
   categories: [
     { id: 'cleaners', slug: 'cleaners', name: 'منظفات', image: '', description: '' },
@@ -20,11 +20,26 @@ const { catalogFixture } = vi.hoisted(() => ({ catalogFixture: {
     available: true, bestSeller: true, createdAt: '2026-03-01',
   }],
   settings: {},
+}, shopSettingsFixture: {
+  shop_name: 'منظفات الإيمان',
+  whatsapp_number: '201012345678',
+  phone_number: '0100 000 0000',
+  address: 'القاهرة، مصر',
+  map_lat: 30.0444,
+  map_lng: 31.2357,
+  opening_hours_text: 'يوميًا 9 ص - 10 م',
+  facebook_url: 'https://facebook.com',
+  instagram_url: 'https://instagram.com',
+  delivery_areas: [],
 } }))
 
 vi.mock('./data/catalog', () => ({
   getCatalog: vi.fn().mockResolvedValue(catalogFixture),
   searchCatalog: vi.fn().mockResolvedValue(catalogFixture),
+}))
+
+vi.mock('./data/settings', () => ({
+  getShopSettings: vi.fn().mockResolvedValue(shopSettingsFixture),
 }))
 
 afterEach(() => {
@@ -52,7 +67,8 @@ describe('store routes', () => {
     router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
     render(<RouterProvider router={router} />)
     expect(await screen.findByText('يمكننا مساعدتك في طلب منتجاتك')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'تواصل معنا على واتساب' })).toHaveAttribute('href', 'https://wa.me/2010XXXXXXXXX')
+    expect(screen.getAllByRole('link', { name: 'تواصل معنا على واتساب' }).map((link) => link.getAttribute('href')))
+      .toContain('https://wa.me/2010XXXXXXXXX')
   })
 })
 

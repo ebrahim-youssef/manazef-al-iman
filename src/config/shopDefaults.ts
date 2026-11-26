@@ -3,8 +3,8 @@ export const shopDefaults = {
   whatsapp_number: '2010XXXXXXXXX',
   phone_number: '0100 000 0000',
   address: 'القاهرة، مصر (عنوان تجريبي)',
-  map_lat: null,
-  map_lng: null,
+  map_lat: 30.0444 as number | null, // Placeholder coordinate in central Cairo until the shop location is configured.
+  map_lng: 31.2357 as number | null,
   opening_hours_text: 'يوميًا 9 ص - 10 م',
   facebook_url: 'https://facebook.com',
   instagram_url: 'https://instagram.com',

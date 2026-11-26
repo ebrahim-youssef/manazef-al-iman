@@ -3,9 +3,11 @@ import { CartProvider } from './context/CartContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
+import VisitUs from './components/VisitUs'
+import type { getShopSettings } from './data/settings'
 import './index.css'
 
-export default function RootDocument() {
+export default function RootDocument({ settings }: { settings: Awaited<ReturnType<typeof getShopSettings>> }) {
   return (
     <html lang="ar" dir="rtl">
       <head>
@@ -21,6 +23,7 @@ export default function RootDocument() {
             <ScrollToTop />
             <Header />
             <main className="main-content"><Outlet /></main>
+            <VisitUs settings={settings} />
             <Footer />
           </div>
         </CartProvider>

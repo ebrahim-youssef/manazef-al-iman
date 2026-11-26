@@ -1,7 +1,9 @@
 import { createRootRoute } from '@tanstack/react-router'
-import RootDocument from '../RootDocument'
+import RootRouteDocument from '../RootRouteDocument'
+import { getShopSettings } from '../data/settings'
 
 export const Route = createRootRoute({
+  loader: () => getShopSettings(),
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -10,5 +12,5 @@ export const Route = createRootRoute({
     ],
     links: [{ rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
   }),
-  component: RootDocument,
+  component: RootRouteDocument,
 })
