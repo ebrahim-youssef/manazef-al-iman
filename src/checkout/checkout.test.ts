@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createOrderCore } from './createOrderCore'
+import { createOrderCore, validateOrderItems } from './createOrderCore'
 import { buildOrderMessage, normalizeEgyptianMobile, isEgyptianMobile } from './whatsappOrder'
 
 const product = {
@@ -17,6 +17,22 @@ const product = {
 }
 
 describe('createOrderCore', () => {
+  it('accepts at most 50 distinct products and quantities from 1 to 99', () => {
+    expect(validateOrderItems([{ id: 'cos-1', quantity: 1 }, { id: 'cos-2', quantity: 99 }])).toHaveLength(2)
+    expect(validateOrderItems(Array.from({ length: 50 }, (_, index) => ({ id: `product-${index}`, quantity: 1 }))))
+      .toHaveLength(50)
+  })
+
+  it('rejects more than 50 distinct products with the actual count', () => {
+    expect(() => validateOrderItems(Array.from({ length: 51 }, (_, index) => ({ id: `product-${index}`, quantity: 1 }))))
+      .toThrow('51 distinct items; maximum is 50')
+  })
+
+  it.each([0, 100, 1.5])('rejects quantity %s with the product and failed condition', (quantity) => {
+    expect(() => validateOrderItems([{ id: 'cos-1', quantity }]))
+      .toThrow(`cos-1 has quantity ${quantity}; expected an integer from 1 to 99`)
+  })
+
   it('reprices from current product data and ignores client prices', async () => {
     const saveOrder = vi.fn(async () => 'ABC234')
     const result = await createOrderCore(

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router'
 import { renderToString } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -7,7 +7,10 @@ import { CartProvider } from './context/CartContext'
 import { useCart } from './context/useCart'
 import { products } from './data/products'
 import { getCatalog } from './data/catalog'
+import { createOrder } from './data/orders'
 import { shopDefaults } from './config/shopDefaults'
+
+type TurnstileOptions = Parameters<NonNullable<Window['turnstile']>['render']>[1]
 
 const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixture: {
   unavailable: false as const,
@@ -31,7 +34,7 @@ const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixtu
   opening_hours_text: 'يوميًا 9 ص - 10 م',
   facebook_url: 'https://facebook.com',
   instagram_url: 'https://instagram.com',
-  delivery_areas: [],
+  delivery_areas: ['القاهرة'],
 } }))
 
 vi.mock('./data/catalog', () => ({
@@ -43,6 +46,14 @@ vi.mock('./data/settings', () => ({
   getShopSettings: vi.fn().mockResolvedValue(shopSettingsFixture),
 }))
 
+vi.mock('./data/orders', () => ({
+  getCurrentCartLines: vi.fn().mockResolvedValue([{
+    id: 'cos-1', quantity: 1, name: 'شامبو', unit: 'العبوة', image: '', price: 80, available: true,
+  }]),
+  createOrder: vi.fn(),
+  getTurnstileSiteKey: vi.fn().mockResolvedValue('1x00000000000000000000AA'),
+}))
+
 vi.mock('./data/adminConfig', () => ({
   getAdminConfig: vi.fn().mockResolvedValue({ supabaseUrl: 'http://127.0.0.1:54321', anonKey: 'test-anon-key' }),
 }))
@@ -50,6 +61,8 @@ vi.mock('./data/adminConfig', () => ({
 afterEach(() => {
   cleanup()
   localStorage.clear()
+  document.querySelectorAll('script[data-turnstile]').forEach((script) => script.remove())
+  delete window.turnstile
 })
 
 describe('store routes', () => {
@@ -88,8 +101,9 @@ describe('store routes', () => {
 })
 
 function CartControls() {
-  const { items, addItem, removeItem } = useCart() as unknown as {
+  const { items, hasLoaded, addItem, removeItem } = useCart() as unknown as {
     items: unknown[]
+    hasLoaded: boolean
     addItem: (product: (typeof products)[number]) => void
     removeItem: (id: string) => void
   }
@@ -98,6 +112,7 @@ function CartControls() {
       <button onClick={() => addItem(products[0])}>أضف</button>
       <button onClick={() => removeItem(products[0].id)}>احذف</button>
       <output>{items.length}</output>
+      <output aria-label="تم تحميل السلة">{String(hasLoaded)}</output>
     </div>
   )
 }
@@ -112,7 +127,93 @@ describe('cart', () => {
     expect(localStorage.getItem('iman-cart')).toBe(JSON.stringify(savedCart))
     render(<CartProvider><CartControls /></CartProvider>)
     await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
+    expect(screen.getByLabelText('تم تحميل السلة')).toHaveTextContent('true')
     expect(localStorage.getItem('iman-cart')).toBe(JSON.stringify(savedCart))
+  })
+
+  it('leaves CartPage loading after the cart context loads', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/cart'] }) })
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByRole('heading', { name: 'سلة التسوق فارغة' })).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('makes each checkout field reachable by its label', async () => {
+    localStorage.setItem('iman-cart', JSON.stringify([{ id: 'cos-1', quantity: 1 }]))
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/cart'] }) })
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByRole('heading', { name: 'بيانات التوصيل' })).toBeInTheDocument()
+    expect(screen.getByLabelText('الاسم')).toBeInTheDocument()
+    expect(screen.getByLabelText(/رقم الموبايل/)).toBeInTheDocument()
+    expect(screen.getByLabelText('المنطقة')).toBeInTheDocument()
+    expect(screen.getByLabelText('العنوان')).toBeInTheDocument()
+    expect(screen.getByLabelText('ملاحظات اختيارية')).toBeInTheDocument()
+  })
+
+  it('keeps one Turnstile widget across quantity changes and removes it when the cart empties', async () => {
+    localStorage.setItem('iman-cart', JSON.stringify([{ id: 'cos-1', quantity: 1 }]))
+    const turnstile = {
+      render: vi.fn(() => 'widget-1'),
+      reset: vi.fn(),
+      execute: vi.fn(),
+      remove: vi.fn(),
+    }
+    window.turnstile = turnstile
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/cart'] }) })
+    render(<RouterProvider router={router} />)
+
+    const quantity = await screen.findByLabelText('كمية شامبو')
+    await waitFor(() => expect(turnstile.render).toHaveBeenCalledTimes(1))
+    fireEvent.change(quantity, { target: { value: '2' } })
+    await waitFor(() => expect(screen.getByLabelText('كمية شامبو')).toHaveValue(2))
+    expect(turnstile.render).toHaveBeenCalledTimes(1)
+    expect(turnstile.remove).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'تفريغ السلة' }))
+    expect(await screen.findByRole('heading', { name: 'سلة التسوق فارغة' })).toBeInTheDocument()
+    expect(turnstile.remove).toHaveBeenCalledWith('widget-1')
+  })
+
+  it('retries Turnstile after a widget error and reports failure only after submit', async () => {
+    localStorage.setItem('iman-cart', JSON.stringify([{ id: 'cos-1', quantity: 1 }]))
+    localStorage.setItem('iman-checkout', JSON.stringify({
+      name: 'عميل', phone: '01012345678', area: 'القاهرة', address: 'شارع النصر', notes: '',
+    }))
+    let widgetOptions: TurnstileOptions | undefined
+    const turnstile = {
+      render: vi.fn((_container: HTMLElement, options: TurnstileOptions) => {
+        widgetOptions = options
+        return 'widget-1'
+      }),
+      reset: vi.fn(),
+      execute: vi.fn(() => widgetOptions?.['error-callback']()),
+      remove: vi.fn(),
+    }
+    window.turnstile = turnstile
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/cart'] }) })
+    render(<RouterProvider router={router} />)
+
+    const submit = await screen.findByRole('button', { name: 'تأكيد الطلب عبر واتساب' })
+    await waitFor(() => expect(turnstile.render).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(submit).toBeEnabled())
+    act(() => widgetOptions?.['error-callback']())
+    expect(submit).toBeEnabled()
+    expect(screen.queryByText('تعذّر إرسال طلبك الآن. حاول مرة أخرى بعد قليل، أو أرسل طلبك مباشرة عبر واتساب.')).not.toBeInTheDocument()
+
+    fireEvent.click(submit)
+    expect(turnstile.reset).toHaveBeenCalledWith('widget-1')
+    expect(turnstile.execute).toHaveBeenCalledTimes(1)
+    expect(turnstile.reset.mock.invocationCallOrder[0]!).toBeLessThan(turnstile.execute.mock.invocationCallOrder[0]!)
+    await waitFor(() => expect(screen.getByText('تعذّر إرسال طلبك الآن. حاول مرة أخرى بعد قليل، أو أرسل طلبك مباشرة عبر واتساب.')).toBeInTheDocument())
+    expect(screen.getByRole('alert').querySelector('a')).toHaveAttribute('href', 'https://wa.me/201012345678')
+    expect(submit).toBeEnabled()
+    expect(createOrder).not.toHaveBeenCalled()
   })
 
   it('adds and removes a product', async () => {
