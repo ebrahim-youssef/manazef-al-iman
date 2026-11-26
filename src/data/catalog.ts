@@ -41,6 +41,7 @@ type CatalogProduct = {
   isFridayActive: boolean
   fridayPrice: number | null
   image: string
+  detailImage: string
   available: boolean
   bestSeller: boolean
   unitType: string
@@ -98,7 +99,7 @@ async function readCatalog(): Promise<CatalogData> {
     if (categoryError || productError || settingsError) return { unavailable: true }
     return {
       unavailable: false,
-      categories: categories.map((category: CategoryRow) => ({ ...category, image: getImageUrl(category.image_path, env.SUPABASE_URL), description: '' })),
+      categories: categories.map((category: CategoryRow) => ({ ...category, image: getImageUrl(category.image_path, 'card', env.SUPABASE_URL), description: '' })),
       products: products.map((product: ProductRow) => {
         const pricing = calculatePrice({
           price: product.price_egp,
@@ -114,7 +115,8 @@ async function readCatalog(): Promise<CatalogData> {
           ...product,
           category: product.category_id,
           price: pricing.shownPrice,
-          image: getImageUrl(product.image_path, env.SUPABASE_URL),
+          image: getImageUrl(product.image_path, 'card', env.SUPABASE_URL),
+          detailImage: getImageUrl(product.image_path, 'detail', env.SUPABASE_URL),
           available: product.is_available,
           bestSeller: product.is_featured,
           originalPrice: pricing.percentOff > 0 ? pricing.originalPrice : null,

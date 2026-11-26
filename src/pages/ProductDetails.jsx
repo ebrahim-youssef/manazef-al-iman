@@ -58,7 +58,7 @@ export default function ProductDetails() {
           </nav>
           <div className="product-details">
             <div className="product-details-image">
-              <img src={product.image} alt={product.name} />
+              <img src={product.detailImage} alt={product.name} />
               {discount > 0 && <span className="badge badge-discount detail-badge">خصم {discount}%</span>}
             </div>
             <div className="product-details-info">

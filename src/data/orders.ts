@@ -71,7 +71,7 @@ export const getCurrentCartLines = createServerFn({ method: 'POST' })
         quantity,
         name: product.name,
         unit: product.unit,
-        image: getImageUrl(product.image_path, env.SUPABASE_URL),
+        image: getImageUrl(product.image_path, 'card', env.SUPABASE_URL),
         price,
         available: product.is_available,
       }

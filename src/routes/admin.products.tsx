@@ -1,4 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import AdminPlaceholder from '../admin/AdminPlaceholder'
+import AdminProductsPage from '../admin/AdminProductsPage'
 
-export const Route = createFileRoute('/admin/products')({ component: () => <AdminPlaceholder title="المنتجات" /> })
+export const Route = createFileRoute('/admin/products')({ component: AdminProductsPage })
