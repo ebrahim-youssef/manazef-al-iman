@@ -1,15 +1,21 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
-import { products } from '../data/products';
-import { categories } from '../data/categories';
+import { Route } from '../routes/product.$id';
+import { CatalogUnavailable } from '../components/CatalogUnavailable';
 import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
-import { getDiscountPercent } from '../data/offers';
+import { getDiscountPercent } from '../utils/discount';
 import { Minus, Package, Plus, ShoppingCart } from '@phosphor-icons/react';
 import ProductGrid from '../components/ProductGrid';
 import './ProductDetails.css';
 
+const EMPTY_PRODUCTS = [];
+const EMPTY_CATEGORIES = [];
+
 export default function ProductDetails() {
+  const catalog = Route.useLoaderData();
+  const products = catalog.unavailable ? EMPTY_PRODUCTS : catalog.products;
+  const categories = catalog.unavailable ? EMPTY_CATEGORIES : catalog.categories;
   const { id } = useParams({ from: '/product/$id' });
   const product = products.find((p) => p.id === id);
   const { addItem } = useCart();
@@ -18,8 +24,9 @@ export default function ProductDetails() {
   const related = useMemo(() => {
     if (!product) return [];
     return products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
-  }, [product]);
+  }, [product, products]);
 
+  if (catalog.unavailable) return <CatalogUnavailable />;
   if (!product) {
     return (
       <div className="container section">

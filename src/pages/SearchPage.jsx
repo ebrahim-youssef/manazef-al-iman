@@ -1,28 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import ProductGrid from '../components/ProductGrid';
-import { products } from '../data/products';
-import { categories } from '../data/categories';
+import { Route } from '../routes/search';
+import { CatalogUnavailable } from '../components/CatalogUnavailable';
 import './SearchPage.css';
 
-function findProducts(query) {
-  const term = query.toLowerCase();
-  return products.filter((p) => {
-    const category = categories.find((c) => c.id === p.category);
-    return (
-      p.name.toLowerCase().includes(term) ||
-      p.brand.toLowerCase().includes(term) ||
-      (category && category.name.toLowerCase().includes(term))
-    );
-  });
-}
-
 export default function SearchPage() {
+  const catalog = Route.useLoaderData();
   const { q: searchQuery } = useSearch({ from: '/search' });
   const navigate = useNavigate({ from: '/search' });
   const q = searchQuery.trim();
-  const results = useMemo(() => (q ? findProducts(q) : []), [q]);
+  if (catalog.unavailable) return <CatalogUnavailable />;
+  const results = catalog.products;
 
   return (
     <section className="page">

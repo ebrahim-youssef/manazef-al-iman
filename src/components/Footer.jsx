@@ -34,7 +34,7 @@ export default function Footer() {
             <li><span>الهاتف:</span> <a href="tel:+201000000000">0100 000 0000</a></li>
             <li><span>واتساب:</span> <a href="https://wa.me/2010XXXXXXXXX" target="_blank" rel="noreferrer">010X XXX XXXX</a></li>
             <li><span>العنوان:</span> القاهرة، مصر (عنوان تجريبي)</li>
-            <li><span>ساعات العمل:</span> يوميًا 9 ص - 11 م</li>
+            <li><span>ساعات العمل:</span> يوميًا 9 ص - 10 م</li>
           </ul>
         </div>
       </div>

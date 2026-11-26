@@ -3,9 +3,9 @@ import { CaretLeft } from '@phosphor-icons/react';
 import HeroBanner from '../components/HeroBanner';
 import CategoryCard from '../components/CategoryCard';
 import ProductGrid from '../components/ProductGrid';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
-import { offerProducts } from '../data/offers';
+import { Route } from '../routes/index';
+import { CatalogUnavailable } from '../components/CatalogUnavailable';
+import { getImageUrl } from '../utils/imageUrl';
 import './Home.css';
 
 const PRODUCTS_PER_SECTION = 4;
@@ -28,10 +28,13 @@ function SectionHeader({ title, subtitle, linkTo, linkLabel }) {
 }
 
 export default function Home() {
-  const fridayOffers = offerProducts.slice(0, PRODUCTS_PER_SECTION);
+  const catalog = Route.useLoaderData();
+  if (catalog.unavailable) return <CatalogUnavailable />;
+  const { categories, products } = catalog;
+  const fridayOffers = products.filter((product) => product.originalPrice && product.originalPrice > product.price).slice(0, PRODUCTS_PER_SECTION);
   const offerIds = new Set(fridayOffers.map((p) => p.id));
   const bestSellers = products
-    .filter((p) => p.bestSeller && p.unitType === 'retail' && !offerIds.has(p.id))
+    .filter((p) => p.bestSeller && !offerIds.has(p.id))
     .slice(0, PRODUCTS_PER_SECTION);
 
   return (
@@ -43,7 +46,7 @@ export default function Home() {
           <SectionHeader title="تسوق حسب القسم" />
           <div className="home-categories-grid">
             {categories.map((cat) => (
-              <CategoryCard key={cat.id} category={cat} />
+            <CategoryCard key={cat.id} category={cat} productCount={products.filter((product) => product.category === cat.id).length} />
             ))}
           </div>
         </div>
@@ -84,7 +87,7 @@ export default function Home() {
           </div>
           <div className="wholesale-banner-image">
             <img
-              src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80"
+              src={getImageUrl('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80')}
               alt=""
               loading="lazy"
             />

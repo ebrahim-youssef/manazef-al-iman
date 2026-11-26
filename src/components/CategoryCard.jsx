@@ -1,14 +1,7 @@
 import { Link } from '@tanstack/react-router';
-import { products } from '../data/products';
-import { offerProducts } from '../data/offers';
 import './CategoryCard.css';
 
-function countProducts(category) {
-  if (category.slug === 'offers') return offerProducts.length;
-  return products.filter((p) => p.category === category.id).length;
-}
-
-export default function CategoryCard({ category }) {
+export default function CategoryCard({ category, productCount }) {
   return (
     <Link to={`/category/${category.slug}`} className="category-card">
       <div className="category-card-image">
@@ -16,7 +9,7 @@ export default function CategoryCard({ category }) {
       </div>
       <div className="category-card-body">
         <h3>{category.name}</h3>
-        <span>{countProducts(category)} منتج</span>
+        <span>{productCount} منتج</span>
       </div>
     </Link>
   );

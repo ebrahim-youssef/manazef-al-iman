@@ -1,6 +1,6 @@
 # منظفات الإيمان
 
-متجر إلكتروني عربي بتصميم RTL مبني باستخدام TanStack Start وReact، ويستخدم ملفات البيانات المحلية في `src/data/`.
+متجر إلكتروني عربي بتصميم RTL مبني باستخدام TanStack Start وReact، ويقرأ بيانات المنتجات والأقسام من Supabase.
 
 ## التشغيل المحلي
 
@@ -9,6 +9,15 @@
 ```sh
 npm install
 npm run dev
+```
+
+انسخ `.dev.vars.example` إلى `.dev.vars` وأضف عنوان مشروع Supabase ومفتاح `anon` العام. لا تضف ملف `.dev.vars` إلى Git. للإنتاج، أضف `SUPABASE_URL` و`SUPABASE_ANON_KEY` كمتغيري Worker في Cloudflare.
+
+بعد إنشاء مستخدم المالك في Supabase Auth، اربطه بصلاحيات الكتابة مرة واحدة من SQL Editor، مع استبدال UUID بمعرّف المستخدم من لوحة Auth:
+
+```sql
+insert into private.shop_owner (singleton, user_id)
+values (true, '00000000-0000-0000-0000-000000000000');
 ```
 
 لفحص المشروع محليًا:

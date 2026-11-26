@@ -2,8 +2,8 @@ import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import ProductGrid from '../components/ProductGrid';
-import { categories } from '../data/categories';
-import { products } from '../data/products';
+import { Route } from '../routes/category.$slug';
+import { CatalogUnavailable } from '../components/CatalogUnavailable';
 import './CategoryPage.css';
 
 const ALL_BRANDS = 'all';
@@ -26,12 +26,14 @@ function sortProducts(list, sort) {
 }
 
 export default function CategoryPage() {
+  const catalog = Route.useLoaderData();
   const { slug } = useParams({ from: '/category/$slug' });
   // Keying on the slug resets every filter when the shopper switches category.
-  return <CategoryListing key={slug} slug={slug} />;
+  if (catalog.unavailable) return <CatalogUnavailable />;
+  return <CategoryListing key={slug} slug={slug} categories={catalog.categories} products={catalog.products} />;
 }
 
-function CategoryListing({ slug }) {
+function CategoryListing({ slug, categories, products }) {
   const category = categories.find((c) => c.slug === slug);
   const [search, setSearch] = useState('');
   const [brand, setBrand] = useState(ALL_BRANDS);
@@ -41,7 +43,7 @@ function CategoryListing({ slug }) {
     if (slug === 'offers') return products.filter((p) => p.originalPrice && p.originalPrice > p.price);
     if (!category) return [];
     return products.filter((p) => p.category === category.id);
-  }, [slug, category]);
+  }, [slug, category, products]);
 
   const brands = useMemo(() => [...new Set(baseProducts.map((p) => p.brand))].sort(), [baseProducts]);
 

@@ -1,0 +1,27 @@
+name: Supabase keepalive
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+jobs:
+  query-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read one settings row
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_ANON_KEY"
+          status=$(curl --fail --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
+            "${SUPABASE_URL%/}/rest/v1/settings?select=id&limit=1" \
+            --header "apikey: $SUPABASE_ANON_KEY" \
+            --header "Authorization: Bearer $SUPABASE_ANON_KEY")
+          case "$status" in
+            2??) ;;
+            *) echo "Supabase keepalive returned HTTP $status" >&2; exit 1 ;;
+          esac

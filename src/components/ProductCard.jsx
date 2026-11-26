@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { Check } from '@phosphor-icons/react';
 import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
-import { getDiscountPercent } from '../data/offers';
+import { getDiscountPercent } from '../utils/discount';
 import './ProductCard.css';
 
 const ADDED_FEEDBACK_MS = 1500;

@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Package, Truck, WhatsappLogo } from '@phosphor-icons/react';
+import { getImageUrl } from '../utils/imageUrl';
 import './HeroBanner.css';
 
 export default function HeroBanner() {
@@ -21,7 +22,7 @@ export default function HeroBanner() {
         </div>
         <div className="hero-visual">
           <img
-            src="https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=1200&q=80"
+            src={getImageUrl('https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=1200&q=80')}
             alt="منتجات تنظيف ومنظفات منزلية"
           />
         </div>

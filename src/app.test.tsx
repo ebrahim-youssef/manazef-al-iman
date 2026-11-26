@@ -1,11 +1,31 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createMemoryHistory, RouterProvider } from '@tanstack/react-router'
 import { renderToString } from 'react-dom/server'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getRouter } from './router'
 import { CartProvider } from './context/CartContext'
 import { useCart } from './context/useCart'
 import { products } from './data/products'
+import { getCatalog } from './data/catalog'
+
+const { catalogFixture } = vi.hoisted(() => ({ catalogFixture: {
+  unavailable: false as const,
+  categories: [
+    { id: 'cleaners', slug: 'cleaners', name: 'منظفات', image: '', description: '' },
+    { id: 'cosmetics', slug: 'cosmetics', name: 'مستحضرات تجميل', image: '', description: '' },
+  ],
+  products: [{
+    id: 'cos-1', name: 'شامبو Sunsilk لشعر ناعم 600 مل', category: 'cosmetics', price: 85,
+    originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Sunsilk', image: '', description: '',
+    available: true, bestSeller: true, createdAt: '2026-03-01',
+  }],
+  settings: {},
+} }))
+
+vi.mock('./data/catalog', () => ({
+  getCatalog: vi.fn().mockResolvedValue(catalogFixture),
+  searchCatalog: vi.fn().mockResolvedValue(catalogFixture),
+}))
 
 afterEach(() => {
   cleanup()
@@ -24,6 +44,15 @@ describe('store routes', () => {
     router.update({ history: createMemoryHistory({ initialEntries: [path] }) })
     render(<RouterProvider router={router} />)
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+  })
+
+  it('renders the WhatsApp outage state when the catalog data layer is unavailable', async () => {
+    vi.mocked(getCatalog).mockResolvedValueOnce({ unavailable: true })
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
+    render(<RouterProvider router={router} />)
+    expect(await screen.findByText('يمكننا مساعدتك في طلب منتجاتك')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'تواصل معنا على واتساب' })).toHaveAttribute('href', 'https://wa.me/2010XXXXXXXXX')
   })
 })
 
