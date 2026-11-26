@@ -89,7 +89,7 @@ function CartControls() {
 
 describe('cart', () => {
   it('loads the saved cart after the empty initial render without overwriting it', async () => {
-    const savedCart = [{ ...products[0], quantity: 2 }]
+    const savedCart = [{ id: products[0].id, quantity: 2 }]
     localStorage.setItem('iman-cart', JSON.stringify(savedCart))
 
     const initialHtml = renderToString(<CartProvider><CartControls /></CartProvider>)
