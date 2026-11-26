@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from '@tanstack/react-router';
 import { Minus, Plus, ShoppingCart, Trash, WhatsappLogo } from '@phosphor-icons/react';
-import { getCurrentCartLines, createOrder } from '../data/orders';
+import { getCurrentCartLines, getTurnstileSiteKey, createOrder } from '../data/orders';
 import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
 import { buildOrderMessage, isEgyptianMobile, normalizeEgyptianMobile } from '../checkout/whatsappOrder';
@@ -10,6 +10,7 @@ import './CartPage.css';
 
 const CHECKOUT_STORAGE_KEY = 'iman-checkout';
 const EMPTY_FORM = { name: '', phone: '', area: '', address: '', notes: '' };
+const CHECKOUT_FAILURE_MESSAGE = 'تعذّر إرسال طلبك الآن. حاول مرة أخرى بعد قليل، أو أرسل طلبك مباشرة عبر واتساب.';
 
 function loadCheckoutForm() {
   try {
@@ -30,6 +31,12 @@ export default function CartPage() {
   const [formLoaded, setFormLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const [turnstileFailed, setTurnstileFailed] = useState(false);
+  const [turnstileLoadFailed, setTurnstileLoadFailed] = useState(false);
+  const turnstileContainer = useRef(null);
+  const turnstileId = useRef(null);
+  const pendingToken = useRef(null);
 
   useEffect(() => {
     if (!hasLoaded) return;
@@ -63,8 +70,76 @@ export default function CartPage() {
     if (formLoaded) localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(form));
   }, [form, formLoaded]);
 
+  const hasItems = items.length > 0;
+  const hasLoadedLines = loadedCartKey !== null;
+  const linesLoaded = !hasItems || loadedCartKey === JSON.stringify(items);
+
+  useEffect(() => {
+    if (!hasLoaded || !hasItems || !hasLoadedLines) return undefined;
+    let isCurrent = true;
+    const renderWidget = (sitekey) => {
+      if (!isCurrent) return;
+      if (!sitekey || !window.turnstile || !turnstileContainer.current) {
+        if (isCurrent) setTurnstileLoadFailed(true);
+        return;
+      }
+      turnstileId.current = window.turnstile.render(turnstileContainer.current, {
+        sitekey,
+        execution: 'execute',
+        appearance: 'interaction-only',
+        callback: (token) => {
+          if (isCurrent) setTurnstileFailed(false);
+          pendingToken.current?.resolve(token);
+          pendingToken.current = null;
+        },
+        'error-callback': () => {
+          pendingToken.current?.reject(new Error('Turnstile widget reported an error'));
+          pendingToken.current = null;
+          if (isCurrent) setTurnstileFailed(true);
+        },
+        'expired-callback': () => {
+          pendingToken.current?.reject(new Error('Turnstile token expired'));
+          pendingToken.current = null;
+        },
+      });
+      if (isCurrent) setTurnstileReady(true);
+    };
+    const onError = () => { if (isCurrent) setTurnstileLoadFailed(true); };
+
+    getTurnstileSiteKey().then((sitekey) => {
+      if (!sitekey) throw new Error('TURNSTILE_SITE_KEY is not configured');
+      if (window.turnstile) {
+        renderWidget(sitekey);
+        return;
+      }
+      let script = document.querySelector('script[data-turnstile]');
+      const shouldAppend = !script;
+      if (!script) {
+        script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.dataset.turnstile = 'true';
+      }
+      script.addEventListener('load', () => renderWidget(sitekey), { once: true });
+      script.addEventListener('error', onError, { once: true });
+      if (shouldAppend) document.head.appendChild(script);
+      if (window.turnstile) renderWidget(sitekey);
+    }).catch(onError);
+
+    return () => {
+      isCurrent = false;
+      if (turnstileId.current != null && window.turnstile) window.turnstile.remove(turnstileId.current);
+      turnstileId.current = null;
+      setTurnstileReady(false);
+      setTurnstileFailed(false);
+      setTurnstileLoadFailed(false);
+      pendingToken.current?.reject(new Error('Checkout closed'));
+      pendingToken.current = null;
+    };
+  }, [hasLoaded, hasItems, hasLoadedLines]);
+
   const lineById = new Map(lines.map((line) => [line.id, line]));
-  const linesLoaded = items.length === 0 || loadedCartKey === JSON.stringify(items);
   const availableLines = lines.filter((line) => line.available);
   const total = availableLines.reduce((sum, line) => sum + line.price * line.quantity, 0);
   const availableCount = availableLines.reduce((sum, line) => sum + line.quantity, 0);
@@ -82,7 +157,26 @@ export default function CartPage() {
     }
     setIsSubmitting(true);
     try {
-      const order = await createOrder({ data: items.map(({ id, quantity }) => ({ id, quantity })) });
+      if (!turnstileReady || turnstileLoadFailed || turnstileId.current == null || !window.turnstile) {
+        throw new Error('Turnstile is not ready');
+      }
+      if (turnstileFailed) setTurnstileFailed(false);
+      const token = await new Promise((resolve, reject) => {
+        const timeout = window.setTimeout(() => {
+          pendingToken.current = null;
+          reject(new Error('Turnstile challenge timed out'));
+        }, 15_000);
+        pendingToken.current = {
+          resolve: (value) => { window.clearTimeout(timeout); resolve(value); },
+          reject: (reason) => { window.clearTimeout(timeout); reject(reason); },
+        };
+        window.turnstile.reset(turnstileId.current);
+        window.turnstile.execute(turnstileId.current);
+      });
+      const order = await createOrder({ data: {
+        items: items.map(({ id, quantity }) => ({ id, quantity })),
+        turnstileToken: token,
+      } });
       const orderItems = order.items.map((line) => ({
         name: line.name,
         quantity: line.quantity,
@@ -97,7 +191,7 @@ export default function CartPage() {
       clearCart();
       window.location.assign(`${fallbackUrl}?text=${encodeURIComponent(message)}`);
     } catch {
-      setError('تعذر تسجيل طلبك الآن. حاول مرة أخرى أو أرسل طلبك مباشرة عبر واتساب.');
+      setError(CHECKOUT_FAILURE_MESSAGE);
       setIsSubmitting(false);
     }
   };
@@ -109,7 +203,7 @@ export default function CartPage() {
           <h1>سلة التسوق</h1>
           {hasLoaded && items.length > 0 && <p>راجع الكميات، ثم اكتب بيانات التوصيل وأكد الطلب على واتساب.</p>}
         </header>
-        {!hasLoaded || !linesLoaded ? (
+        {!hasLoaded || (hasItems && !hasLoadedLines) ? (
           <div className="cart-loading" role="status" aria-live="polite">جارٍ تحديث سلة التسوق…</div>
         ) : items.length === 0 ? (
           <div className="empty-state">
@@ -157,15 +251,17 @@ export default function CartPage() {
                 <h2>بيانات التوصيل</h2>
                 <p className="checkout-privacy">تُحفظ بياناتك على هذا الجهاز وتُرسل إلى المتجر داخل رسالة واتساب فقط.</p>
                 <div className="checkout-fields">
-                  <label>الاسم<input name="name" autoComplete="name" required value={form.name} onChange={updateField} /></label>
-                  <label>رقم الموبايل<input name="phone" type="tel" inputMode="tel" autoComplete="tel-national" required value={form.phone} onChange={updateField} aria-describedby="phone-hint" /><span id="phone-hint">مثال: 01012345678</span></label>
-                  <label>المنطقة<select name="area" required value={form.area} onChange={updateField}><option value="">اختر المنطقة</option>{(settings.delivery_areas || []).map((area) => <option key={area} value={area}>{area}</option>)}</select></label>
-                  <label className="checkout-address">العنوان<input name="address" autoComplete="street-address" required value={form.address} onChange={updateField} /></label>
-                  <label className="checkout-address">ملاحظات اختيارية<textarea name="notes" rows="3" value={form.notes} onChange={updateField} /></label>
+                  <label htmlFor="checkout-name">الاسم<input id="checkout-name" name="name" autoComplete="name" required value={form.name} onChange={updateField} /></label>
+                  <label htmlFor="checkout-phone">رقم الموبايل<input id="checkout-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" required value={form.phone} onChange={updateField} aria-describedby="phone-hint" /><span id="phone-hint">مثال: 01012345678</span></label>
+                  <label htmlFor="checkout-area">المنطقة<select id="checkout-area" name="area" required value={form.area} onChange={updateField}><option value="">اختر المنطقة</option>{(settings.delivery_areas || []).map((area) => <option key={area} value={area}>{area}</option>)}</select></label>
+                  <label className="checkout-address" htmlFor="checkout-address">العنوان<input id="checkout-address" name="address" autoComplete="street-address" required value={form.address} onChange={updateField} /></label>
+                  <label className="checkout-address" htmlFor="checkout-notes">ملاحظات اختيارية<textarea id="checkout-notes" name="notes" rows="3" value={form.notes} onChange={updateField} /></label>
                 </div>
+                <div className="turnstile-widget" ref={turnstileContainer} />
                 {!settings.delivery_areas?.length && <p className="checkout-hint">لم تُضف مناطق التوصيل بعد. <a href={fallbackUrl}>تواصل معنا عبر واتساب</a> لتحديد منطقتك.</p>}
                 {error && <div className="checkout-error" role="alert"><p>{error}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
-                <button type="submit" className="btn btn-primary whatsapp-btn" disabled={isSubmitting || !formLoaded || !availableCount || !settings.delivery_areas?.length}>
+                {turnstileLoadFailed && !error && <div className="checkout-error" role="alert"><p>{CHECKOUT_FAILURE_MESSAGE}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
+                <button type="submit" className="btn btn-primary whatsapp-btn" disabled={isSubmitting || !formLoaded || !linesLoaded || !availableCount || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
                   <WhatsappLogo weight="bold" aria-hidden="true" />
                   {isSubmitting ? 'جارٍ تسجيل الطلب…' : 'تأكيد الطلب عبر واتساب'}
                 </button>

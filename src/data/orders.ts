@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { createClient } from '@supabase/supabase-js'
 import { calculatePrice, type DiscountType } from '../pricing/price'
-import { createOrderCore, type OrderProduct, type PricedOrderLine } from '../checkout/createOrderCore'
+import { createOrderCore, validateOrderItems, type OrderProduct, type PricedOrderLine } from '../checkout/createOrderCore'
+import { verifyTurnstile } from '../checkout/turnstile'
 import { getImageUrl } from '../utils/imageUrl'
 
 const SUPABASE_TIMEOUT_MS = 8_000
@@ -77,19 +78,34 @@ export const getCurrentCartLines = createServerFn({ method: 'POST' })
     })
   })
 
+export const getTurnstileSiteKey = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const { env } = await import('cloudflare:workers')
+    return env.TURNSTILE_SITE_KEY
+  })
+
 export const createOrder = createServerFn({ method: 'POST' })
   .validator((data: unknown) => data)
   .handler(async ({ data }) => {
+    if (typeof data !== 'object' || data === null || !('items' in data)
+      || !('turnstileToken' in data) || typeof data.turnstileToken !== 'string') {
+      throw new Error('Order request must include items and a Turnstile token')
+    }
+    const cart = validateOrderItems(data.items)
     const { env, client } = await createReadClient()
     const rawServiceKey = env.SUPABASE_SERVICE_ROLE_KEY
     if (!rawServiceKey) throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured')
+    await verifyTurnstile(data.turnstileToken, env.TURNSTILE_SECRET_KEY, (input, init) => fetch(input, {
+      ...init,
+      signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
+    }))
     const serviceClient = createClient(env.SUPABASE_URL, rawServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
       global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) }) },
     })
     let savedOrder: { code: string; items: PricedOrderLine[]; total: number } | undefined
     const order = await createOrderCore(
-      data,
+      cart,
       async (ids) => {
         const { data: products, error } = await client.from('products')
           .select('id,name,unit,image_path,price_egp,is_available,sale_type,sale_value,sale_starts_at,sale_ends_at,friday_type,friday_value')
@@ -98,7 +114,6 @@ export const createOrder = createServerFn({ method: 'POST' })
         return (products as ProductRow[]).map(toOrderProduct)
       },
       async (items) => {
-        // Ticket #5 adds the Turnstile token check here, before the privileged RPC.
         const { data: result, error } = await serviceClient.rpc('create_order', { items })
         if (error) throw new Error(`Order could not be saved: ${error.message}`)
         const resultObject = result as { code: string; items: PricedOrderLine[]; total: number }

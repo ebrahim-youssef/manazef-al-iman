@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-انسخ `.dev.vars.example` إلى `.dev.vars` وأضف عنوان مشروع Supabase ومفتاح `anon` العام ومفتاح الخدمة الخاص. لا تضف ملف `.dev.vars` إلى Git. للإنتاج، أضف `SUPABASE_URL` و`SUPABASE_ANON_KEY` كمتغيري Worker في Cloudflare، وأضف `SUPABASE_SERVICE_ROLE_KEY` سرًا في إعدادات Worker. يستخدمه إنشاء الطلبات على الخادم فقط؛ لا تضعه في شيفرة المتصفح.
+انسخ `.dev.vars.example` إلى `.dev.vars`. يحتوي المثال على مفاتيح Turnstile الاختبارية التي تنجح دائمًا من Cloudflare، واستبدل قيم Supabase بقيم مشروعك. لا تضف ملف `.dev.vars` إلى Git. للإنتاج، أضف `SUPABASE_URL` و`SUPABASE_ANON_KEY` و`TURNSTILE_SITE_KEY` كمتغيرات Worker في Cloudflare، وأضف `SUPABASE_SERVICE_ROLE_KEY` و`TURNSTILE_SECRET_KEY` كسرّين. يستخدم الخادم مفتاح Turnstile للتحقق من كل طلب قبل حفظه؛ لا تضع المفتاح السرّي في شيفرة المتصفح. أنشئ مفاتيح إنتاج من لوحة Turnstile، ولا تستخدم مفاتيح الاختبار في المتجر المنشور.
 
 بعد إنشاء مستخدم المالك في Supabase Auth، اربطه بصلاحيات الكتابة مرة واحدة من SQL Editor، مع استبدال UUID بمعرّف المستخدم من لوحة Auth:
 
