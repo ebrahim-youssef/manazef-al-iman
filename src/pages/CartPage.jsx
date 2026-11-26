@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { Link } from '@tanstack/react-router';
+import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
 import { buildWhatsAppUrl } from '../utils/whatsapp';
 import { Minus, Plus, ShoppingCart, Trash, WhatsappLogo } from '@phosphor-icons/react';

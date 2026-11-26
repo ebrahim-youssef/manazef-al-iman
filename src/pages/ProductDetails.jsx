@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '@tanstack/react-router';
 import { products } from '../data/products';
 import { categories } from '../data/categories';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
 import { getDiscountPercent } from '../data/offers';
 import { Minus, Package, Plus, ShoppingCart } from '@phosphor-icons/react';
@@ -10,7 +10,7 @@ import ProductGrid from '../components/ProductGrid';
 import './ProductDetails.css';
 
 export default function ProductDetails() {
-  const { id } = useParams();
+  const { id } = useParams({ from: '/product/$id' });
   const product = products.find((p) => p.id === id);
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);

@@ -1,6 +1,6 @@
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from '@tanstack/react-router';
 import ProductGrid from '../components/ProductGrid';
 import { categories } from '../data/categories';
 import { products } from '../data/products';
@@ -26,7 +26,7 @@ function sortProducts(list, sort) {
 }
 
 export default function CategoryPage() {
-  const { slug } = useParams();
+  const { slug } = useParams({ from: '/category/$slug' });
   // Keying on the slug resets every filter when the shopper switches category.
   return <CategoryListing key={slug} slug={slug} />;
 }

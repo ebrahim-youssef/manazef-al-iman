@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { products } from '../data/products';
 import { offerProducts } from '../data/offers';
 import './CategoryCard.css';

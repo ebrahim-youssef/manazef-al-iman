@@ -1,0 +1,7 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "manazef-al-iman",
+  "compatibility_date": "2026-11-26",
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true }
+}

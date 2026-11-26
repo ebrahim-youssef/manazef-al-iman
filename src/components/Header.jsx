@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { List, MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 import { categories } from '../data/categories';
 import './Header.css';
 
@@ -33,7 +33,7 @@ export default function Header() {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
-    navigate(`/search?q=${encodeURIComponent(q)}`);
+    navigate({ to: '/search', search: { q } });
     setQuery('');
     closeAll();
   };
@@ -60,13 +60,16 @@ export default function Header() {
           <ul className="nav-list">
             {categories.map((category) => (
               <li key={category.id}>
-                <NavLink
-                  to={`/category/${category.slug}`}
-                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                <Link
+                  to="/category/$slug"
+                  params={{ slug: category.slug }}
+                  activeOptions={{ exact: false }}
+                  activeProps={{ className: 'active' }}
+                  className="nav-link"
                   onClick={closeAll}
                 >
                   {category.name}
-                </NavLink>
+                </Link>
               </li>
             ))}
           </ul>

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { FacebookLogo, InstagramLogo, WhatsappLogo } from '@phosphor-icons/react';
 import { categories } from '../data/categories';
 import './Footer.css';

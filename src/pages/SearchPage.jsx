@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import ProductGrid from '../components/ProductGrid';
 import { products } from '../data/products';
@@ -19,8 +19,9 @@ function findProducts(query) {
 }
 
 export default function SearchPage() {
-  const [params, setParams] = useSearchParams();
-  const q = (params.get('q') || '').trim();
+  const { q: searchQuery } = useSearch({ from: '/search' });
+  const navigate = useNavigate({ from: '/search' });
+  const q = searchQuery.trim();
   const results = useMemo(() => (q ? findProducts(q) : []), [q]);
 
   return (
@@ -36,7 +37,7 @@ export default function SearchPage() {
         </header>
 
         {/* Keyed on the URL query so the box shows the new term after a header search. */}
-        <SearchBox key={q} initialQuery={q} onSearch={(term) => setParams(term ? { q: term } : {})} />
+        <SearchBox key={q} initialQuery={q} onSearch={(term) => navigate({ search: { q: term } })} />
 
         {q && (
           <div className="results-bar">

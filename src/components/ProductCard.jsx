@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { Check } from '@phosphor-icons/react';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
 import { getDiscountPercent } from '../data/offers';
 import './ProductCard.css';

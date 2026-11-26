@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { CaretLeft } from '@phosphor-icons/react';
 import HeroBanner from '../components/HeroBanner';
 import CategoryCard from '../components/CategoryCard';
@@ -80,7 +80,7 @@ export default function Home() {
           <div>
             <h2>تسوق بالجملة</h2>
             <p>وفر أكتر مع عروض الكراتين والكميات. أسعار خاصة للكميات مع توضيح كامل لمحتوى كل كرتونة.</p>
-            <Link to="/category/wholesale" className="btn btn-primary">اكتشف منتجات الجملة</Link>
+          <Link to="/category/$slug" params={{ slug: 'wholesale' }} className="btn btn-primary">اكتشف منتجات الجملة</Link>
           </div>
           <div className="wholesale-banner-image">
             <img

@@ -1,16 +1,38 @@
-# React + Vite
+# منظفات الإيمان
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+متجر إلكتروني عربي بتصميم RTL مبني باستخدام TanStack Start وReact، ويستخدم ملفات البيانات المحلية في `src/data/`.
 
-Currently, two official plugins are available:
+## التشغيل المحلي
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+يتطلب المشروع Node.js 22.12 أو أحدث. ثبّت الاعتماديات وشغّل خادم التطوير:
 
-## React Compiler
+```sh
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+لفحص المشروع محليًا:
 
-## Expanding the Oxlint configuration
+```sh
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## النشر على Cloudflare Workers
+
+يتطلب النشر حساب Cloudflare ونطاق `workers.dev` مفعّلًا. سجّل الدخول مرة واحدة باستخدام Wrangler، ثم انشر:
+
+```sh
+npx wrangler login
+npm run deploy
+```
+
+لمعاينة إعدادات النشر دون نشر التطبيق:
+
+```sh
+npx wrangler deploy --dry-run
+```
+
+اسم Worker وإعداداته موجودة في `wrangler.jsonc`. ملفات خط Thmanyah محلية فقط داخل `public/fonts/`، وهذا المجلد مستثنى من Git؛ عند غيابها يستخدم الموقع خط Cairo الاحتياطي.
