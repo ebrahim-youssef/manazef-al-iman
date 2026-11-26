@@ -19,6 +19,11 @@ const emptySettings: ShopSettingsForm = {
   delivery_areas: [],
 }
 
+function isAreaInvalid(areas: string[], index: number) {
+  const name = areas[index]!.trim().toLocaleLowerCase()
+  return !name || areas.some((area, otherIndex) => otherIndex !== index && area.trim().toLocaleLowerCase() === name)
+}
+
 function getFormValue(value: unknown) {
   return value === null || value === undefined ? '' : String(value)
 }
@@ -183,20 +188,20 @@ export default function AdminSettingsPage() {
             <section className="admin-settings-section" aria-labelledby="settings-areas-title">
               <div className="admin-settings-section-heading">
                 <div><h2 id="settings-areas-title">مناطق التوصيل</h2><p>أضف اسم كل منطقة كما سيظهر للعميل.</p></div>
-                <button className="admin-settings-secondary-button" type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: [...current.delivery_areas, ''] }))}>إضافة منطقة</button>
               </div>
               {settings.delivery_areas.length === 0 && <p className="admin-settings-empty">لم تُضف مناطق توصيل بعد.</p>}
               <ul className="admin-settings-area-list">
                 {settings.delivery_areas.map((area, index) => (
                   <li key={index}>
                     <label className="admin-settings-field" htmlFor={`delivery-area-${index}`}>المنطقة {index + 1}
-                      <input id={`delivery-area-${index}`} value={area} onChange={(event) => updateArea(index, event.currentTarget.value)} aria-invalid={Boolean(errors.delivery_areas)} aria-describedby={errors.delivery_areas ? 'delivery-areas-error' : undefined} />
+                      <input id={`delivery-area-${index}`} value={area} onChange={(event) => updateArea(index, event.currentTarget.value)} aria-invalid={Boolean(errors.delivery_areas) && isAreaInvalid(settings.delivery_areas, index)} aria-describedby={errors.delivery_areas ? 'delivery-areas-error' : undefined} />
                     </label>
                     <button className="admin-settings-remove-button" type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: current.delivery_areas.filter((_, areaIndex) => areaIndex !== index) }))}>حذف</button>
                   </li>
                 ))}
               </ul>
               {errors.delivery_areas && <p className="admin-settings-field-error" id="delivery-areas-error">{errors.delivery_areas}</p>}
+              <button className="admin-settings-secondary-button" type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: [...current.delivery_areas, ''] }))}>إضافة منطقة</button>
             </section>
 
             </fieldset>
