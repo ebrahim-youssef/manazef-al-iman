@@ -29,12 +29,20 @@ export function filterOrders(orders: AdminOrder[], status: OrderFilter, search: 
 }
 
 export function formatOrderDate(date: string) {
-  return new Intl.DateTimeFormat('ar-EG', {
+  const timestamp = new Date(date)
+  const dayAndMonth = new Intl.DateTimeFormat('ar-EG', {
     calendar: 'gregory',
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     timeZone: 'Africa/Cairo',
-  }).format(new Date(date))
+  }).format(timestamp)
+  const time = new Intl.DateTimeFormat('ar-EG', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'Africa/Cairo',
+  }).format(timestamp)
+  return `${dayAndMonth}، ${time}`
 }
 
 export function formatOrderTotal(total: number) {

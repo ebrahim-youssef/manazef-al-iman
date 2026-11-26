@@ -9,10 +9,15 @@ select has_index('public', 'orders', 'orders_code_unique_idx', 'order codes have
 select has_function('public', 'create_order', array['jsonb'], 'create_order accepts JSON items');
 select ok(not has_function_privilege('anon', 'public.create_order(jsonb)', 'EXECUTE'), 'anon cannot execute create_order');
 select ok(not has_function_privilege('authenticated', 'public.create_order(jsonb)', 'EXECUTE'), 'authenticated cannot execute create_order');
+
+insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values ('00000000-0000-4000-8000-000000000002', 'authenticated', 'authenticated', 'customer@test.local', '', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now())
+on conflict (id) do nothing;
+
 select ok(not has_table_privilege('anon', 'public.orders', 'SELECT'), 'anon cannot read orders');
 select ok(not has_table_privilege('anon', 'public.order_items', 'SELECT'), 'anon cannot read order_items');
-select ok(not has_table_privilege('authenticated', 'public.orders', 'SELECT'), 'authenticated cannot read orders');
-select ok(not has_table_privilege('authenticated', 'public.order_items', 'SELECT'), 'authenticated cannot read order_items');
+select ok(has_table_privilege('authenticated', 'public.orders', 'SELECT'), 'authenticated may query orders through owner-only RLS');
+select ok(has_table_privilege('authenticated', 'public.order_items', 'SELECT'), 'authenticated may query order_items through owner-only RLS');
 
 set local role anon;
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
@@ -21,10 +26,10 @@ select throws_ok($$select * from public.orders$$, '42501', null, 'anon order rea
 select throws_ok($$select * from public.order_items$$, '42501', null, 'anon order item reads are denied');
 
 set local role authenticated;
-select set_config('request.jwt.claims', '{"role":"authenticated"}', true);
+select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002"}', true);
 select throws_ok($$select public.create_order('[]'::jsonb)$$, '42501', null, 'authenticated cannot call create_order');
-select throws_ok($$select * from public.orders$$, '42501', null, 'authenticated order reads are denied');
-select throws_ok($$select * from public.order_items$$, '42501', null, 'authenticated order item reads are denied');
+select is((select count(*)::integer from public.orders), 0, 'non-owner authenticated user sees no orders');
+select is((select count(*)::integer from public.order_items), 0, 'non-owner authenticated user sees no order items');
 
 set local role service_role;
 select set_config('request.jwt.claims', '{"role":"service_role"}', true);

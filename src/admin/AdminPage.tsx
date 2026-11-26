@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpLeft, ClipboardText, MagnifyingGlass, SignOut, Spinner } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowRight, ArrowUpLeft, ClipboardText, MagnifyingGlass, SignOut, Spinner } from '@phosphor-icons/react'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import {
@@ -36,6 +36,7 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
   const [authError, setAuthError] = useState('')
   const [busy, setBusy] = useState(false)
   const [orders, setOrders] = useState<AdminOrder[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [ordersError, setOrdersError] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderFilter>('all')
   const [search, setSearch] = useState('')
@@ -115,6 +116,19 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
     setOrders([])
     setSelectedOrder(null)
     setItems(null)
+  }
+
+  async function refreshOrders() {
+    if (!client || !session || isRefreshing) return
+    setIsRefreshing(true)
+    const { data, error } = await loadOrders(client)
+    setIsRefreshing(false)
+    if (error) {
+      setOrdersError('تعذر تحميل الطلبات. تحقق من الاتصال ثم حاول مجددًا.')
+      return
+    }
+    setOrdersError('')
+    setOrders(data ?? [])
   }
 
   async function openOrder(order: AdminOrder) {
@@ -215,14 +229,18 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
               </ul>
             )}
             <div className="admin-status-actions" aria-label="تغيير حالة الطلب">
-              <button type="button" className="admin-primary-button" onClick={() => changeStatus('fulfilled')} disabled={changingStatus || selectedOrder.status === 'fulfilled'}>تم التسليم</button>
-              <button type="button" className="admin-danger-button" onClick={() => changeStatus('cancelled')} disabled={changingStatus || selectedOrder.status === 'cancelled'}>إلغاء الطلب</button>
-              <button type="button" className="admin-secondary-button" onClick={() => changeStatus('new')} disabled={changingStatus || selectedOrder.status === 'new'}>إعادة إلى جديد</button>
+              {selectedOrder.status !== 'fulfilled' && <button type="button" className="admin-primary-button" onClick={() => changeStatus('fulfilled')} disabled={changingStatus}>تم التسليم</button>}
+              {selectedOrder.status !== 'cancelled' && <button type="button" className="admin-danger-button" onClick={() => changeStatus('cancelled')} disabled={changingStatus}>إلغاء الطلب</button>}
+              {selectedOrder.status !== 'new' && <button type="button" className="admin-secondary-button" onClick={() => changeStatus('new')} disabled={changingStatus}>إعادة إلى جديد</button>}
             </div>
           </section>
         ) : (
           <>
             <section className="admin-controls" aria-label="البحث والتصفية">
+              <button className="admin-refresh-button" type="button" onClick={refreshOrders} disabled={isRefreshing}>
+                {isRefreshing ? <Spinner size={18} className="admin-spin" aria-hidden="true" /> : <ArrowClockwise size={18} aria-hidden="true" />}
+                {isRefreshing ? 'جارٍ تحديث الطلبات…' : 'تحديث الطلبات'}
+              </button>
               <label className="admin-search">
                 <MagnifyingGlass size={19} aria-hidden="true" />
                 <span className="admin-visually-hidden">البحث برقم الطلب</span>

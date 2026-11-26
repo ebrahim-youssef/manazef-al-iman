@@ -16,7 +16,7 @@ describe('admin order list', () => {
   })
 
   it('formats order dates in Cairo and totals in Egyptian pounds', () => {
-    expect(formatOrderDate('2026-11-25T22:30:00.000Z')).toContain('٢٦')
+    expect(formatOrderDate('2026-11-25T22:30:00.000Z')).toBe('٢٦ نوفمبر، ١٢:٣٠ ص')
     expect(formatOrderTotal(1100)).toContain('١٬١٠٠')
   })
 })
