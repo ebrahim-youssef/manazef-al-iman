@@ -1,6 +1,7 @@
 import { formatEGP } from './format';
+import { shopDefaults } from '../config/shopDefaults';
 
-const WHATSAPP_PHONE = '2010XXXXXXXXX';
+const WHATSAPP_PHONE = shopDefaults.whatsapp_number;
 
 export function buildWhatsAppMessage(items, total) {
   const lines = [];

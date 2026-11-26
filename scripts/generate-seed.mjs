@@ -56,7 +56,7 @@ function productValues(product) {
 }
 
 const rows = [
-  `insert into public.settings (id, shop_name, whatsapp_number, phone_number, address, map_lat, map_lng, opening_hours_text, facebook_url, instagram_url, delivery_areas) values (true, 'منظفات الإيمان', '2010XXXXXXXXX', '0100 000 0000', 'القاهرة، مصر (عنوان تجريبي)', 30.0444, 31.2357, 'يوميًا 9 ص - 10 م', 'https://facebook.com', 'https://instagram.com', '{}');`,
+  `insert into public.settings (id, shop_name, whatsapp_number, phone_number, address, map_lat, map_lng, opening_hours_text, facebook_url, instagram_url, tiktok_url, delivery_areas) values (true, 'منظفات الإيمان', '201097961866', '0109 796 1866', 'القاهرة، مصر (عنوان تجريبي)', 30.0444, 31.2357, 'يوميًا 9 ص - 10 م', 'https://www.facebook.com/share/1FUbavfPhu/', 'https://www.instagram.com/zoghlyahmed', 'https://www.tiktok.com/@user15552825', '{}');`,
   ...categories.map((category, index) => `insert into public.categories (id, slug, name, image_path, sort_order) values (${quote(category.id)}, ${quote(category.slug)}, ${quote(category.name)}, ${quote(category.image)}, ${index});`),
   ...products.map((product) => `insert into public.products (id, category_id, name, brand, unit, description, image_path, price_egp, is_available, is_featured, created_at, sale_type, sale_value, sale_starts_at, sale_ends_at, friday_type, friday_value) values (${productValues(product)});`),
   `insert into auth.users (id, aud, role, email, encrypted_password, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at) values ('00000000-0000-4000-8000-000000000001', 'authenticated', 'authenticated', 'owner@test.local', '', now(), '{"provider":"email","providers":["email"]}', '{}', now(), now()) on conflict (id) do nothing;`,
