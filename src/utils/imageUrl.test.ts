@@ -7,6 +7,15 @@ describe('getImageUrl', () => {
   })
 
   it('resolves storage paths against the configured public bucket', () => {
-    expect(getImageUrl('products/item.webp', 'https://shop.test')).toBe('https://shop.test/storage/v1/object/public/catalog/products/item.webp')
+    expect(getImageUrl('products/item.webp', 'card', 'https://shop.test')).toBe('https://shop.test/storage/v1/object/public/catalog/products/item.webp')
+  })
+
+  it('derives the detail image name from the stored card image path', () => {
+    expect(getImageUrl('products/item.webp', 'detail', 'https://shop.test')).toBe('https://shop.test/storage/v1/object/public/catalog/products/item-detail.webp')
+  })
+
+  it('uses the supplied base URL and leaves legacy paths unchanged', () => {
+    expect(getImageUrl('legacy.webp', 'card', 'https://shop.test')).toBe('https://shop.test/storage/v1/object/public/catalog/legacy.webp')
+    expect(getImageUrl('legacy.webp', 'detail', 'https://shop.test')).toBe('https://shop.test/storage/v1/object/public/catalog/legacy.webp')
   })
 })

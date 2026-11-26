@@ -51,6 +51,7 @@ const product = (overrides: Record<string, unknown> = {}) => ({
   isFridayActive: false,
   fridayPrice: null,
   image: '',
+  detailImage: '',
   available: true,
   bestSeller: false,
   unitType: 'retail',
