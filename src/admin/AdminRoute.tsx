@@ -1,7 +1,7 @@
 import { useLoaderData } from '@tanstack/react-router'
-import AdminPage from './AdminPage'
+import AdminLayout from './AdminLayout'
 
 export default function AdminRoute() {
   const config = useLoaderData({ from: '/admin' })
-  return <AdminPage supabaseUrl={config.supabaseUrl} anonKey={config.anonKey} />
+  return <AdminLayout supabaseUrl={config.supabaseUrl} anonKey={config.anonKey} />
 }

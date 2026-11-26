@@ -71,8 +71,7 @@ describe('store routes', () => {
     router.update({ history: createMemoryHistory({ initialEntries: ['/admin'] }) })
     render(<RouterProvider router={router} />)
 
-    expect(await screen.findByText('لوحة المالك')).toBeInTheDocument()
-    expect(screen.getByText('منظفات الإيمان')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'دخول المالك' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /سلة التسوق/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'زورنا' })).not.toBeInTheDocument()
   })

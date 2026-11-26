@@ -1,6 +1,7 @@
-import { ArrowClockwise, ArrowRight, ArrowUpLeft, ClipboardText, MagnifyingGlass, SignOut, Spinner } from '@phosphor-icons/react'
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { ArrowClockwise, ArrowRight, ArrowUpLeft, ClipboardText, MagnifyingGlass, Spinner } from '@phosphor-icons/react'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
+import { useAdminClient } from './AdminClientContext'
 import {
   filterOrders,
   formatOrderDate,
@@ -12,29 +13,14 @@ import {
 } from './adminOrders'
 import './AdminPage.css'
 
-type AdminPageProps = {
-  supabaseUrl: string | null
-  anonKey: string | null
-}
-
-type OrderSession = Awaited<ReturnType<SupabaseClient['auth']['getSession']>>['data']['session']
-
 const statusNames: Record<OrderStatus, string> = {
   new: 'جديد',
   fulfilled: 'مكتمل',
   cancelled: 'ملغي',
 }
 
-export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
-  const client = useMemo(() => {
-    if (!supabaseUrl || !anonKey) return null
-    return createClient(supabaseUrl, anonKey, { auth: { persistSession: true, autoRefreshToken: true } })
-  }, [anonKey, supabaseUrl])
-  const [session, setSession] = useState<OrderSession | undefined>(() => client ? undefined : null)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [authError, setAuthError] = useState('')
-  const [busy, setBusy] = useState(false)
+export default function AdminPage() {
+  const client = useAdminClient()
   const [orders, setOrders] = useState<AdminOrder[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [ordersError, setOrdersError] = useState('')
@@ -46,31 +32,6 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
   const [changingStatus, setChangingStatus] = useState(false)
 
   useEffect(() => {
-    if (!client) return
-    let isActive = true
-    const { data: { subscription } } = client.auth.onAuthStateChange((_event, nextSession) => {
-      if (!isActive) return
-      setSession(nextSession)
-      if (!nextSession) {
-        setOrders([])
-        setOrdersError('')
-        setSelectedOrder(null)
-        setItems(null)
-      }
-    })
-    void client.auth.getSession().then(({ data, error }) => {
-      if (!isActive) return
-      if (error) setAuthError('تعذر التحقق من الجلسة. حدّث الصفحة وحاول مجددًا.')
-      setSession(data.session)
-    })
-    return () => {
-      isActive = false
-      subscription.unsubscribe()
-    }
-  }, [client])
-
-  useEffect(() => {
-    if (!client || !session) return
     let isActive = true
     void loadOrders(client).then(({ data, error }) => {
       if (!isActive) return
@@ -83,43 +44,10 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
       setOrders(data ?? [])
     })
     return () => { isActive = false }
-  }, [client, session])
-
-  async function submitLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!client) {
-      setAuthError('إعدادات الدخول غير متاحة. تواصل مع مسؤول الموقع.')
-      return
-    }
-    setBusy(true)
-    setAuthError('')
-    const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password })
-    setBusy(false)
-    if (error) {
-      setAuthError('تعذر تسجيل الدخول. راجع البريد وكلمة المرور وحاول مجددًا.')
-      return
-    }
-    setSession(data.session)
-    setPassword('')
-  }
-
-  async function logout() {
-    if (!client) return
-    setBusy(true)
-    const { error } = await client.auth.signOut()
-    setBusy(false)
-    if (error) {
-      setAuthError('تعذر تسجيل الخروج. حاول مجددًا.')
-      return
-    }
-    setSession(null)
-    setOrders([])
-    setSelectedOrder(null)
-    setItems(null)
-  }
+  }, [client])
 
   async function refreshOrders() {
-    if (!client || !session || isRefreshing) return
+    if (isRefreshing) return
     setIsRefreshing(true)
     const { data, error } = await loadOrders(client)
     setIsRefreshing(false)
@@ -161,32 +89,6 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
     setSelectedOrder((current) => current ? { ...current, status } : current)
   }
 
-  if (session === undefined) {
-    return <main className="admin-shell" dir="rtl"><p className="admin-loading"><Spinner size={20} className="admin-spin" /> جارٍ التحقق من الجلسة…</p></main>
-  }
-
-  if (!session) {
-    return (
-      <main className="admin-shell" dir="rtl">
-        <section className="admin-login" aria-labelledby="admin-login-title">
-          <span className="admin-brand-mark" aria-hidden="true"><ClipboardText size={23} weight="duotone" /></span>
-          <h1 id="admin-login-title">دخول المالك</h1>
-          <p>سجّل الدخول لمتابعة طلبات المتجر.</p>
-          <form onSubmit={submitLogin}>
-            <label htmlFor="admin-email">البريد الإلكتروني</label>
-            <input id="admin-email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} />
-            <label htmlFor="admin-password">كلمة المرور</label>
-            <input id="admin-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
-            {authError && <p className="admin-error" role="alert">{authError}</p>}
-            <button className="admin-primary-button" type="submit" disabled={busy || !client}>
-              {busy ? 'جارٍ الدخول…' : 'دخول'}
-            </button>
-          </form>
-        </section>
-      </main>
-    )
-  }
-
   const visibleOrders = filterOrders(orders, statusFilter, search)
 
   return (
@@ -202,9 +104,6 @@ export default function AdminPage({ supabaseUrl, anonKey }: AdminPageProps) {
             <h1>{selectedOrder ? `طلب ${selectedOrder.code}` : 'الطلبات'}</h1>
             <p>{selectedOrder ? formatOrderDate(selectedOrder.created_at) : 'متابعة طلبات المتجر'}</p>
           </div>
-          <button className="admin-logout-button" type="button" onClick={logout} disabled={busy} aria-label="تسجيل الخروج">
-            <SignOut size={19} /><span>تسجيل الخروج</span>
-          </button>
         </header>
 
         {selectedOrder ? (
