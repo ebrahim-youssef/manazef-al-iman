@@ -54,6 +54,10 @@ vi.mock('./data/orders', () => ({
   getTurnstileSiteKey: vi.fn().mockResolvedValue('1x00000000000000000000AA'),
 }))
 
+vi.mock('./data/adminConfig', () => ({
+  getAdminConfig: vi.fn().mockResolvedValue({ supabaseUrl: 'http://127.0.0.1:54321', anonKey: 'test-anon-key' }),
+}))
+
 afterEach(() => {
   cleanup()
   localStorage.clear()
@@ -73,6 +77,17 @@ describe('store routes', () => {
     router.update({ history: createMemoryHistory({ initialEntries: [path] }) })
     render(<RouterProvider router={router} />)
     expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+  })
+
+  it('renders the owner frame without customer cart or visit section', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/admin'] }) })
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByText('لوحة المالك')).toBeInTheDocument()
+    expect(screen.getByText('منظفات الإيمان')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /سلة التسوق/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'زورنا' })).not.toBeInTheDocument()
   })
 
   it('renders the WhatsApp outage state when the catalog data layer is unavailable', async () => {

@@ -3,6 +3,75 @@
   border-block: 1px solid var(--border);
 }
 
+.home-order {
+  padding-block: 28px;
+  background: var(--primary-soft);
+}
+.home-order .section-title {
+  text-align: center;
+  font-size: 1.35rem;
+}
+.home-order-steps {
+  display: flex;
+  justify-content: center;
+  max-width: 720px;
+  margin: 20px auto 12px;
+  padding: 0;
+  list-style: none;
+  color: var(--primary-dark);
+  font-weight: 700;
+  text-align: center;
+}
+.home-order-steps li {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 8px;
+}
+.home-order-steps li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 26px;
+  inset-inline-start: calc(50% + 36px);
+  inline-size: calc(100% - 72px);
+  border-top: 2px dashed rgba(22, 138, 69, 0.35);
+}
+.home-order-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 52px;
+  block-size: 52px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--primary);
+  font-size: 1.6rem;
+  box-shadow: 0 4px 12px rgba(18, 107, 55, 0.12);
+}
+.home-order-note {
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.home-friday {
+  background: var(--primary-soft);
+  border-block: 1px solid rgba(22, 138, 69, 0.14);
+}
+.section-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.badge-today {
+  background: var(--primary);
+  color: var(--white);
+  font-size: 0.85rem;
+}
+
 .home-categories-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -59,6 +128,11 @@
   .wholesale-banner-inner > div:first-child { padding: 32px 24px; }
 }
 @media (max-width: 560px) {
+  .home-order { padding-block: 24px; }
+  .home-order-steps { margin-top: 16px; font-size: 0.85rem; line-height: 1.4; }
+  .home-order-steps li { padding-inline: 4px; gap: 8px; }
+  .home-order-icon { inline-size: 44px; block-size: 44px; font-size: 1.35rem; }
+  .home-order-steps li:not(:last-child)::after { top: 22px; inset-inline-start: calc(50% + 30px); inline-size: calc(100% - 60px); }
   .home-categories-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
   .category-card-body { flex-direction: column; gap: 0; }
 }

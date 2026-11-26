@@ -1,0 +1,27 @@
+.admin-app-shell {
+  min-height: 100vh;
+}
+
+.admin-app-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.admin-app-header > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+
+.admin-app-header strong {
+  font-size: 1rem;
+}
+
+.admin-app-header span {
+  color: var(--primary-dark);
+  font-weight: 700;
+}
