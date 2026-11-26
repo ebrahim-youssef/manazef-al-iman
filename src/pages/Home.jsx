@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { CaretLeft } from '@phosphor-icons/react';
+import { CaretLeft, MapPinLine, ShoppingCartSimple, WhatsappLogo } from '@phosphor-icons/react';
 import HeroBanner from '../components/HeroBanner';
 import CategoryCard from '../components/CategoryCard';
 import ProductGrid from '../components/ProductGrid';
@@ -9,6 +9,11 @@ import { getImageUrl } from '../utils/imageUrl';
 import './Home.css';
 
 const PRODUCTS_PER_SECTION = 4;
+const ORDER_STEPS = [
+  { label: 'اختر منتجاتك', Icon: ShoppingCartSimple },
+  { label: 'اكتب عنوانك', Icon: MapPinLine },
+  { label: 'أكد الطلب على واتساب', Icon: WhatsappLogo },
+];
 
 function OrderSteps() {
   return (
@@ -16,9 +21,12 @@ function OrderSteps() {
       <div className="container">
         <h2 className="section-title" id="home-order-title">كيف تطلب؟</h2>
         <ol className="home-order-steps">
-          <li>اختر منتجاتك</li>
-          <li>اكتب عنوانك</li>
-          <li>أكد الطلب على واتساب</li>
+          {ORDER_STEPS.map(({ label, Icon }) => (
+            <li key={label}>
+              <span className="home-order-icon" aria-hidden="true"><Icon weight="duotone" /></span>
+              {label}
+            </li>
+          ))}
         </ol>
         <p className="home-order-note">يتم الاتفاق على مصاريف التوصيل في المحادثة.</p>
       </div>
@@ -26,11 +34,14 @@ function OrderSteps() {
   );
 }
 
-function SectionHeader({ title, subtitle, linkTo, linkLabel, titleId }) {
+function SectionHeader({ title, subtitle, badge, linkTo, linkLabel, titleId }) {
   return (
     <div className="section-header">
       <div>
-        <h2 className="section-title" id={titleId}>{title}</h2>
+        <div className="section-title-row">
+          <h2 className="section-title" id={titleId}>{title}</h2>
+          {badge && <span className="badge badge-today">{badge}</span>}
+        </div>
         {subtitle && <p className="section-subtitle">{subtitle}</p>}
       </div>
       {linkTo && (
@@ -83,9 +94,14 @@ export default function Home() {
         </section>
       )}
 
-      <section className="section section-alt" aria-labelledby="home-friday-title">
+      <section className="section home-friday" aria-labelledby="home-friday-title">
         <div className="container">
-          <SectionHeader title={isFridayActive ? 'عروض الجمعة متاح اليوم' : 'عروض الجمعة'} titleId="home-friday-title" />
+          <SectionHeader
+            title="عروض الجمعة"
+            subtitle="أسعار خاصة على منتجات مختارة كل يوم جمعة."
+            badge={isFridayActive ? 'متاح اليوم' : null}
+            titleId="home-friday-title"
+          />
           <ProductGrid products={fridayDeals} />
         </div>
       </section>

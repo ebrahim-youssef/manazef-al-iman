@@ -94,7 +94,8 @@ describe('home page sections', () => {
       product({ id: 'friday-product', name: 'عرض الجمعة', price: 75, fridayPrice: 75, isFridayActive: true }),
     ])
 
-    expect(screen.getByRole('heading', { name: 'عروض الجمعة متاح اليوم' })).toBeInTheDocument()
+    const fridaySection = screen.getByRole('region', { name: 'عروض الجمعة' })
+    expect(within(fridaySection).getByText('متاح اليوم')).toBeInTheDocument()
     expect(screen.getByText('٧٥ جنيه')).toBeInTheDocument()
 
     cleanup()
