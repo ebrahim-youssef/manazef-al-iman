@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-انسخ `.dev.vars.example` إلى `.dev.vars` وأضف عنوان مشروع Supabase ومفتاح `anon` العام. لا تضف ملف `.dev.vars` إلى Git. للإنتاج، أضف `SUPABASE_URL` و`SUPABASE_ANON_KEY` كمتغيري Worker في Cloudflare.
+انسخ `.dev.vars.example` إلى `.dev.vars` وأضف عنوان مشروع Supabase ومفتاح `anon` العام ومفتاح الخدمة الخاص. لا تضف ملف `.dev.vars` إلى Git. للإنتاج، أضف `SUPABASE_URL` و`SUPABASE_ANON_KEY` كمتغيري Worker في Cloudflare، وأضف `SUPABASE_SERVICE_ROLE_KEY` سرًا في إعدادات Worker. يستخدمه إنشاء الطلبات على الخادم فقط؛ لا تضعه في شيفرة المتصفح.
 
 بعد إنشاء مستخدم المالك في Supabase Auth، اربطه بصلاحيات الكتابة مرة واحدة من SQL Editor، مع استبدال UUID بمعرّف المستخدم من لوحة Auth:
 

@@ -8,7 +8,9 @@ function loadCart() {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item) => item && item.id && item.quantity > 0);
+    return parsed.filter((item) => item && typeof item.id === 'string' && item.id.length > 0
+      && Number.isInteger(item.quantity) && item.quantity > 0)
+      .map(({ id, quantity }) => ({ id, quantity }));
   } catch {
     return [];
   }
@@ -33,16 +35,7 @@ function cartReducer(state, action) {
         ...state,
         items: [
           ...state.items,
-          {
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            unit: product.unit,
-            unitType: product.unitType,
-            image: product.image,
-            cartonSize: product.cartonSize,
-            quantity: Math.max(1, quantity),
-          },
+          { id: product.id, quantity: Math.max(1, quantity) },
         ],
       };
     }
@@ -73,17 +66,19 @@ export function CartProvider({ children }) {
 
   const value = useMemo(() => {
     const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
-    const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     return {
       items,
+      hasLoaded,
       itemCount,
-      total,
       addItem: (product, quantity = 1) => dispatch({ type: 'ADD', payload: { product, quantity } }),
       removeItem: (id) => dispatch({ type: 'REMOVE', payload: { id } }),
       updateQty: (id, quantity) => dispatch({ type: 'UPDATE_QTY', payload: { id, quantity } }),
-      clearCart: () => dispatch({ type: 'CLEAR' }),
+      clearCart: () => {
+        localStorage.setItem(STORAGE_KEY, '[]');
+        dispatch({ type: 'CLEAR' });
+      },
     };
-  }, [items]);
+  }, [hasLoaded, items]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

@@ -3,9 +3,10 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { List, MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
 import { useCart } from '../context/useCart';
 import { categories } from '../data/categories';
+import { shopDefaults } from '../config/shopDefaults';
 import './Header.css';
 
-const WHATSAPP_URL = 'https://wa.me/2010XXXXXXXXX';
+const WHATSAPP_URL = `https://wa.me/${shopDefaults.whatsapp_number}`;
 
 export default function Header() {
   const { itemCount } = useCart();
