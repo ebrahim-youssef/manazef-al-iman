@@ -21,6 +21,7 @@ const { catalogFixture } = vi.hoisted(() => ({
       opening_hours_text: 'يوميًا 9 ص - 10 م',
       facebook_url: '',
       instagram_url: '',
+      tiktok_url: '',
       delivery_areas: [],
     },
   },
