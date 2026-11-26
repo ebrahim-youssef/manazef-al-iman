@@ -7,6 +7,7 @@ import { CartProvider } from './context/CartContext'
 import { useCart } from './context/useCart'
 import { products } from './data/products'
 import { getCatalog } from './data/catalog'
+import { shopDefaults } from './config/shopDefaults'
 
 const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixture: {
   unavailable: false as const,
@@ -68,7 +69,7 @@ describe('store routes', () => {
     render(<RouterProvider router={router} />)
     expect(await screen.findByText('يمكننا مساعدتك في طلب منتجاتك')).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'تواصل معنا على واتساب' }).map((link) => link.getAttribute('href')))
-      .toContain('https://wa.me/2010XXXXXXXXX')
+      .toContain(`https://wa.me/${shopDefaults.whatsapp_number}`)
   })
 })
 
