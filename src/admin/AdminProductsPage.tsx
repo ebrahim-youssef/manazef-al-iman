@@ -1,13 +1,15 @@
 import { Plus, Spinner, Trash, X } from '@phosphor-icons/react'
-import { Combobox, InputBase, useCombobox } from '@mantine/core'
+import { Combobox, Group, Image, InputBase, Text, useCombobox } from '@mantine/core'
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { calculatePrice } from '../pricing/price'
 import { formatEGP } from '../utils/format'
 import { detailImagePath } from '../utils/imageUrl'
+import { searchIndex } from '../search/search'
 import { useAdminClient } from './AdminClientContext'
 import { filterProducts, formatCairoDateTime, parseCairoDateTime, productImagePaths, validateProduct, writeProductWithImages, type ProductDraft } from './adminProducts'
 import { makeProductImages } from './productImage'
 import AdminCategories from './AdminCategoriesSection'
+import AdminBrandsSection from './AdminBrandsSection'
 import './AdminProductsPage.css'
 
 type Product = ProductDraft & { created_at: string; updated_at: string }
@@ -32,6 +34,8 @@ export default function AdminProductsPage() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [brandSearch, setBrandSearch] = useState('')
   const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() })
+  const searchCombobox = useCombobox({ onDropdownClose: () => searchCombobox.resetSelectedOption() })
+  const nameCombobox = useCombobox({ onDropdownClose: () => nameCombobox.resetSelectedOption() })
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('all')
   const [availableOnly, setAvailableOnly] = useState(false)
@@ -68,7 +72,13 @@ export default function AdminProductsPage() {
   // oxlint-disable-next-line react/set-state-in-effect -- Initial rows are loaded from Supabase after mount.
   useEffect(() => { void loadProducts() }, [loadProducts])
 
-  const visibleProducts = useMemo(() => filterProducts(products, { search, categoryId, availableOnly, featuredOnly }), [products, search, categoryId, availableOnly, featuredOnly])
+  const index = useMemo(() => ({
+    products: products.map((product) => ({ ...product, brand: brands.find((brand) => brand.id === product.brand_id)?.name ?? '', brandArabic: brands.find((brand) => brand.id === product.brand_id)?.arabic_name, category: product.category_id, image: product.image_path, price: product.price_egp })),
+    categories: categories.map((category) => ({ ...category, slug: category.id })),
+  }), [products, brands, categories])
+  const searchResults = useMemo(() => searchIndex(index, search), [index, search])
+  const nameSuggestions = useMemo(() => searchIndex({ products: index.products.map((product) => ({ ...product, brand: '', brandArabic: '', category: '' })), categories: [] }, editing?.id ? '' : editing?.name ?? '').products, [index, editing?.id, editing?.name])
+  const visibleProducts = useMemo(() => filterProducts(search.trim() ? searchResults.products : products, { search: '', categoryId, availableOnly, featuredOnly }), [products, search, searchResults, categoryId, availableOnly, featuredOnly])
 
   function openProduct(product?: Product) {
     setBrandSearch(brands.find((brand) => brand.id === product?.brand_id)?.name ?? '')
@@ -261,9 +271,13 @@ export default function AdminProductsPage() {
           <button className="admin-primary-button admin-products-add" type="button" onClick={() => openProduct()}><Plus size={18} /> إضافة</button>
         </header>
         <AdminCategories categories={categories} reload={loadProducts} />
+        <AdminBrandsSection brands={brands} reload={loadProducts} />
         {error && <p className="admin-error" role="alert">{error}</p>}
         <div className="admin-products-filters">
-          <label className="admin-search"><span className="admin-visually-hidden">البحث بالاسم</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ابحث باسم المنتج" /></label>
+          <Combobox store={searchCombobox} onOptionSubmit={(id) => { const product = products.find((item) => item.id === id); if (product) openProduct(product); searchCombobox.closeDropdown() }}>
+            <Combobox.Target><InputBase aria-label="البحث بالاسم" value={search} placeholder="ابحث باسم المنتج" maxLength={60} onChange={(event) => { setSearch(event.currentTarget.value); searchCombobox.openDropdown(); searchCombobox.resetSelectedOption() }} onFocus={() => { if (search) searchCombobox.openDropdown() }} /></Combobox.Target>
+            <Combobox.Dropdown><Combobox.Options>{searchResults.products.slice(0, 6).map((product) => <Combobox.Option value={product.id} key={product.id}><Group wrap="nowrap" gap="sm"><Image src={product.image_path ? (/^https?:\/\//i.test(product.image_path) ? product.image_path : client.storage.from('catalog').getPublicUrl(product.image_path).data.publicUrl) : undefined} alt="" w={44} h={44} radius="sm" fit="cover" /><div><Text size="sm" fw={600}>{product.name}</Text><Text size="sm">{formatEGP(product.price_egp)}</Text></div></Group></Combobox.Option>)}{!searchResults.products.length && <Combobox.Empty>لا توجد منتجات مطابقة.</Combobox.Empty>}</Combobox.Options></Combobox.Dropdown>
+          </Combobox>
           <select aria-label="تصفية حسب القسم" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
             <option value="all">كل الأقسام</option>
             {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
@@ -277,7 +291,7 @@ export default function AdminProductsPage() {
               <li className="admin-product-row" key={product.id}>
                 <button type="button" className="admin-product-open" onClick={() => openProduct(product)}>
                   {product.image_path && <img src={/^https?:\/\//i.test(product.image_path) ? product.image_path : client.storage.from('catalog').getPublicUrl(product.image_path).data.publicUrl} alt="" />}
-                  <span><strong>{product.name}</strong><small>{categories.find((category) => category.id === product.category_id)?.name ?? 'قسم غير معروف'} · {formatEGP(product.price_egp)}</small></span>
+                  <span><strong>{product.name}</strong><small>{brands.find((brand) => brand.id === product.brand_id)?.name} · {categories.find((category) => category.id === product.category_id)?.name ?? 'قسم غير معروف'} · {formatEGP(product.price_egp)}</small></span>
                 </button>
                 <label className="admin-product-switch"><input type="checkbox" checked={product.is_available} onChange={() => void toggleProduct(product, 'is_available')} /> متوفر</label>
                 <label className="admin-product-switch"><input type="checkbox" checked={product.is_featured} onChange={() => void toggleProduct(product, 'is_featured')} /> مختار</label>
@@ -292,7 +306,17 @@ export default function AdminProductsPage() {
             <header><h2 id="admin-product-form-title">{editing.id ? 'تعديل المنتج' : 'منتج جديد'}</h2><button type="button" aria-label="إغلاق" onClick={() => setEditing(null)} disabled={busy}><X size={20} /></button></header>
             <form onSubmit={(event) => void saveProduct(event)}>
               <label>القسم<select required value={editing.category_id} onChange={(event) => setField('category_id', event.target.value)}><option value="" disabled>اختر القسم</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>
-              <label>اسم المنتج<input required value={editing.name} onChange={(event) => setField('name', event.target.value)} /></label>
+              <Combobox store={nameCombobox} onOptionSubmit={(id) => {
+                const product = products.find((item) => item.id === id)
+                if (product) {
+                  setEditing((current) => current ? { ...current, name: product.name, category_id: product.category_id, brand_id: product.brand_id, description: product.description } : current)
+                  setBrandSearch(brands.find((brand) => brand.id === product.brand_id)?.name ?? '')
+                }
+                nameCombobox.closeDropdown()
+              }}>
+                <Combobox.Target><InputBase label="اسم المنتج" required value={editing.name} onChange={(event) => { setField('name', event.currentTarget.value); if (!editing.id) nameCombobox.openDropdown() }} onFocus={() => { if (!editing.id && editing.name) nameCombobox.openDropdown() }} /></Combobox.Target>
+                <Combobox.Dropdown><Combobox.Options>{nameSuggestions.slice(0, 6).map((product) => <Combobox.Option value={product.id} key={product.id}>{product.name}</Combobox.Option>)}</Combobox.Options></Combobox.Dropdown>
+              </Combobox>
               <Combobox store={combobox} onOptionSubmit={(value) => void selectBrand(value)}>
                 <Combobox.Target><InputBase label="العلامة التجارية" aria-label="العلامة التجارية" required value={brandSearch} onChange={(event) => { setBrandSearch(event.currentTarget.value); setField('brand_id', ''); combobox.openDropdown() }} onFocus={() => combobox.openDropdown()} /></Combobox.Target>
                 <Combobox.Dropdown><Combobox.Options>
