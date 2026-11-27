@@ -1,3 +1,5 @@
+import { Paper } from '@mantine/core'
+import styles from './AdminArea.module.css'
 import { useEffect, useState } from 'react'
 import { useAdminClient } from './AdminClientContext'
 import type { EarningsSummary } from './adminEarnings'
@@ -38,22 +40,22 @@ export default function AdminEarningsPage() {
   }, [client])
 
   return (
-    <main className="admin-shell" dir="rtl">
-      <div className="admin-page">
-        <header className="admin-header"><div className="admin-header-copy"><h1>الأرباح</h1><p>إجماليات الطلبات المسلّمة</p></div></header>
-        {isLoading && <p className="admin-loading">جارٍ تحميل الأرباح…</p>}
-        {error && <p className="admin-error" role="alert">{error}</p>}
+    <main className={styles['admin-shell']} dir="rtl">
+      <div className={styles['admin-page']}>
+        <header className={styles['admin-header']}><div className={styles['admin-header-copy']}><h1>الأرباح</h1><p>إجماليات الطلبات المسلّمة</p></div></header>
+        {isLoading && <p className={styles['admin-loading']}>جارٍ تحميل الأرباح…</p>}
+        {error && <p className={styles['admin-error']} role="alert">{error}</p>}
         {!isLoading && !error && (
           <>
-            <ul className="admin-earnings-list">
+            <ul className={styles['admin-earnings-list']}>
               {periods.map(({ key, label }) => (
-                <li className="admin-earnings-card" key={key}>
+                <Paper component="li" className={styles['admin-earnings-card']} key={key}>
                   <div><h2>{label}</h2><p>الطلبات: {new Intl.NumberFormat('ar-EG').format(summary[key].orderCount)}</p></div>
-                  <strong className="admin-earnings-total">{formatOrderTotal(summary[key].totalEgp)}</strong>
-                </li>
+                  <strong className={styles['admin-earnings-total']}>{formatOrderTotal(summary[key].totalEgp)}</strong>
+                </Paper>
               ))}
             </ul>
-            <p className="admin-earnings-note">لا تشمل مصاريف التوصيل.</p>
+            <p className={styles['admin-earnings-note']}>لا تشمل مصاريف التوصيل.</p>
           </>
         )}
       </div>

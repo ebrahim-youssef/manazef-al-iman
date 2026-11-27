@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { TestProviders } from '../test-utils'
 import AdminLayout from './AdminLayout'
 
 const { client } = vi.hoisted(() => ({
@@ -28,7 +29,7 @@ afterEach(() => {
 
 describe('admin layout', () => {
   it('signs in with email and password and opens the admin section', async () => {
-    render(<AdminLayout supabaseUrl="https://example.supabase.co" anonKey="public-anon-key" />)
+    render(<TestProviders><AdminLayout supabaseUrl="https://example.supabase.co" anonKey="public-anon-key" /></TestProviders>)
 
     fireEvent.change(await screen.findByLabelText('البريد الإلكتروني'), { target: { value: 'owner@example.test' } })
     fireEvent.change(screen.getByLabelText('كلمة المرور'), { target: { value: 'secret' } })
@@ -40,7 +41,7 @@ describe('admin layout', () => {
 
   it('shows all navigation tabs, marks the orders tab, and signs out', async () => {
     client.auth.getSession.mockResolvedValue({ data: { session: { user: { id: 'owner' } } }, error: null })
-    render(<AdminLayout supabaseUrl="https://example.supabase.co" anonKey="public-anon-key" />)
+    render(<TestProviders><AdminLayout supabaseUrl="https://example.supabase.co" anonKey="public-anon-key" /></TestProviders>)
 
     expect(await screen.findByRole('link', { name: 'الطلبات' })).toHaveAttribute('href', '/admin')
     expect(screen.getByRole('link', { name: 'الطلبات' })).toHaveAttribute('aria-current', 'page')
