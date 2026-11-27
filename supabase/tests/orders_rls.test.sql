@@ -38,11 +38,11 @@ update order_creation_test set orders_before_failure = (select count(*)::integer
 select ok((select result ->> 'code' ~ '^[A-HJKMNP-Z2-9]{6}$' from order_creation_test), 'code uses six allowed characters');
 select is((select jsonb_array_length(result -> 'items') from order_creation_test), 1, 'RPC returns the saved item');
 select is((select result #>> '{items,0,name}' from order_creation_test), (select name from public.products where id = 'cos-1'), 'order item uses the database product name');
-select is((select result #>> '{items,0,unit}' from order_creation_test), (select unit from public.products where id = 'cos-1'), 'order item uses the database unit');
+select ok(not (select (result -> 'items' -> 0) ? 'unit' from order_creation_test), 'order item omits the sale unit');
 select is((select result #>> '{items,0,unitPrice}' from order_creation_test), '77', 'order item snapshots the calculated unit price');
 select is((select result ->> 'total' from order_creation_test), '154', 'order returns the snapshotted total');
 select is((select count(*)::integer from order_creation_test join public.orders on public.orders.code = order_creation_test.result ->> 'code' where public.orders.total_egp = 154 and public.orders.item_count = 2), 1, 'order row stores its total and item count');
-select is((select count(*)::integer from order_creation_test join public.orders on public.orders.code = order_creation_test.result ->> 'code' join public.order_items on public.order_items.order_id = public.orders.id where public.order_items.product_name = (select name from public.products where id = 'cos-1') and public.order_items.unit = (select unit from public.products where id = 'cos-1') and public.order_items.unit_price_egp = 77 and public.order_items.quantity = 2 and public.order_items.line_total_egp = 154), 1, 'one function call atomically stores the item snapshots');
+select is((select count(*)::integer from order_creation_test join public.orders on public.orders.code = order_creation_test.result ->> 'code' join public.order_items on public.order_items.order_id = public.orders.id where public.order_items.product_name = (select name from public.products where id = 'cos-1') and public.order_items.unit is null and public.order_items.unit_price_egp = 77 and public.order_items.quantity = 2 and public.order_items.line_total_egp = 154), 1, 'one function call atomically stores the item snapshots');
 select throws_ok($$select public.create_order('[{"id":"cos-1","unitPrice":2147483648,"quantity":1}]'::jsonb)$$, '22003', null, 'an item insert failure aborts order creation');
 select is((select count(*)::integer - min(orders_before_failure) from public.orders cross join order_creation_test), 0, 'a failed item insert leaves no partial order row');
 

@@ -5,10 +5,9 @@ export type CartOrderInput = { id: string; quantity: number }
 export type OrderProduct = ProductPricing & {
   id: string
   name: string
-  unit: string
   available: boolean
 }
-export type PricedOrderLine = { id: string; name: string; unit: string; unitPrice: number; quantity: number }
+export type PricedOrderLine = { id: string; name: string; unitPrice: number; quantity: number }
 
 export function validateOrderItems(input: unknown): CartOrderInput[] {
   if (!Array.isArray(input) || input.length === 0) throw new Error('Order is empty; expected at least 1 item')
@@ -51,7 +50,7 @@ export async function createOrderCore(
     const product = productById.get(id)
     if (!product?.available) return []
     const price = calculatePrice(product, instant).shownPrice
-    return [{ id, name: product.name, unit: product.unit, unitPrice: price, quantity }]
+    return [{ id, name: product.name, unitPrice: price, quantity }]
   })
   if (items.length === 0) throw new Error('No available products in order')
 

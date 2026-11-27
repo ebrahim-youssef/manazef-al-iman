@@ -12,7 +12,7 @@ export type AdminOrder = {
 export type AdminOrderItem = {
   id: string
   product_name: string
-  unit: string
+  unit: string | null
   unit_price_egp: number
   quantity: number
   line_total_egp: number

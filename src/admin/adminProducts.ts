@@ -5,7 +5,6 @@ export type ProductDraft = {
   category_id: string
   name: string
   brand: string
-  unit: string
   description: string
   image_path: string
   price_egp: number

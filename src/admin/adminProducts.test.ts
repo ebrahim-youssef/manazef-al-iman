@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { filterProducts, formatCairoDateTime, parseCairoDateTime, productImagePaths, validateProduct, writeProductWithImages, type ProductDraft } from './adminProducts'
 
 const product: ProductDraft = {
-  id: 'soap-1', category_id: 'cosmetics', name: 'صابون دوف', brand: 'Dove', unit: 'قطعة', description: '',
+  id: 'soap-1', category_id: 'cosmetics', name: 'صابون دوف', brand: 'Dove', description: '',
   image_path: '', price_egp: 50, is_available: true, is_featured: false, sale_type: 'none', sale_value: null,
   sale_starts_at: null, sale_ends_at: null, friday_type: 'none', friday_value: null,
 }

@@ -12,7 +12,6 @@ type ProductRow = {
   category_id: string
   name: string
   brand: string
-  unit: string
   description: string
   image_path: string
   price_egp: number
@@ -32,7 +31,6 @@ type CatalogProduct = {
   category: string
   name: string
   brand: string
-  unit: string
   description: string
   price: number
   originalPrice: number | null
