@@ -9,6 +9,7 @@ export default function AdminBrandsSection({ brands, reload }: { brands: Brand[]
   const [editing, setEditing] = useState<Brand | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -34,10 +35,10 @@ export default function AdminBrandsSection({ brands, reload }: { brands: Brand[]
     setBusy(false)
   }
 
-  return <Paper component="details" withBorder p="md" mb="md">
+  return <Paper component="details" withBorder p="md" mb="md" onToggle={(event) => setIsOpen(event.currentTarget.open)}>
     <summary>العلامات التجارية</summary>
     {error && <p role="alert">{error}</p>}
-    {brands.map((brand) => <Group key={brand.id} justify="space-between" mt="sm">
+    {isOpen && brands.map((brand) => <Group key={brand.id} justify="space-between" mt="sm">
       <span>{brand.name}</span>
       <Group gap="xs"><Button variant="default" disabled={busy} aria-label={`تعديل ${brand.name}`} onClick={() => { setEditing(brand); setError('') }}>تعديل</Button><Button color="red" variant="subtle" disabled={busy} aria-label={`حذف ${brand.name}`} onClick={() => void remove(brand)}>حذف</Button></Group>
     </Group>)}
