@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { AdminClientContext } from './AdminClientContext'
 import AdminProductsPage from './AdminProductsPage'
@@ -7,6 +7,19 @@ import { TestProviders } from '../test-utils'
 afterEach(cleanup)
 
 const product = { id: 'p1', name: 'مسحوق أريال', brand_id: 'ariel', category_id: 'washing', description: 'للغسيل', image_path: '', price_egp: 50, is_available: true, is_featured: false, sale_type: 'none', sale_value: null, sale_starts_at: null, sale_ends_at: null, friday_type: 'none', friday_value: null }
+
+it('saves only product columns after opening a filtered row', async () => {
+  const client = catalogClient()
+  const originalFrom = client.from
+  const update = vi.fn((_value: Record<string, unknown>) => ({ eq: async () => ({ error: null }) }))
+  client.from = vi.fn((table: string) => table === 'products' ? { ...originalFrom(table), update } : originalFrom(table)) as never
+  render(<TestProviders><AdminClientContext.Provider value={client as never}><AdminProductsPage /></AdminClientContext.Provider></TestProviders>)
+  fireEvent.change(await screen.findByPlaceholderText('ابحث باسم المنتج'), { target: { value: 'اريال' } })
+  fireEvent.click(await screen.findByRole('button', { name: /مسحوق أريال.*Ariel/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'حفظ المنتج' }))
+  await waitFor(() => expect(update).toHaveBeenCalledOnce())
+  expect(Object.keys(update.mock.calls[0]![0]).sort()).toEqual([...Object.keys(product).filter((key) => key !== 'image_path'), 'updated_at'].sort())
+})
 
 function catalogClient() {
   const rows: Record<string, unknown[]> = { products: [product], categories: [{ id: 'other', name: 'أخرى', image_path: '', sort_order: 0 }, { id: 'washing', name: 'غسيل', image_path: '', sort_order: 1 }], brands: [{ id: 'ariel', name: 'Ariel', arabic_name: 'أريال' }] }
@@ -91,6 +104,14 @@ it('selects a brand from the product form', async () => {
   fireEvent.change(screen.getByLabelText('العلامة التجارية'), { target: { value: 'بريل' } })
   fireEvent.click(await screen.findByText('Pril'))
   expect(screen.getByLabelText('العلامة التجارية')).toHaveValue('Pril')
+})
+
+it('matches a brand containing U+06D6 as the SQL normalized name اريال', async () => {
+  const client = catalogClient()
+  render(<TestProviders><AdminClientContext.Provider value={client as never}><AdminProductsPage /></AdminClientContext.Provider></TestProviders>)
+  fireEvent.click(await screen.findByRole('button', { name: 'إضافة' }))
+  fireEvent.change(screen.getByLabelText('العلامة التجارية'), { target: { value: 'أر\u06d6يال' } })
+  expect(await screen.findByRole('option', { name: 'Ariel' })).toBeInTheDocument()
 })
 
 it.each(['created', 'duplicate'])('selects the %s brand after adding it', async (outcome) => {

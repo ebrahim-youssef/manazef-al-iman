@@ -1,8 +1,9 @@
 export type LocationPoint = { lat: number; lng: number }
 export type PlaceResult = LocationPoint & { name: string }
+const NOMINATIM_REQUEST_INTERVAL_MS = 1_000
 
 export function reserveSearchTime(now: number, previous: number) {
-  const time = Math.max(now, previous + 1000)
+  const time = Math.max(now, previous + NOMINATIM_REQUEST_INTERVAL_MS)
   return { time, delayMs: time - now }
 }
 

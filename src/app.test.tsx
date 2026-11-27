@@ -85,6 +85,19 @@ describe('store routes', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/product/pril'))
   })
 
+  it('closes suggestions when the search query is cleared', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
+    render(<RouterProvider router={router} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'بحث' }))
+    const input = screen.getByRole('combobox', { name: 'البحث في المتجر' })
+    fireEvent.change(input, { target: { value: 'بريل' } })
+    await screen.findByRole('option', { name: /بريل/ })
+    fireEvent.change(input, { target: { value: '  ' } })
+    expect(input).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('لا توجد نتائج. جرّب كلمة أخرى.')).not.toBeInTheDocument()
+  })
+
   it('shows matching results and a did-you-mean link', async () => {
     const router = getRouter()
     router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormE
 import { calculatePrice } from '../pricing/price'
 import { formatEGP } from '../utils/format'
 import { detailImagePath } from '../utils/imageUrl'
-import { searchIndex } from '../search/search'
+import { normalizeSearch, searchIndex } from '../search/search'
 import { useAdminClient } from './AdminClientContext'
 import { filterProducts, formatCairoDateTime, parseCairoDateTime, productImagePaths, validateProduct, writeProductWithImages, type ProductDraft } from './adminProducts'
 import { makeProductImages } from './productImage'
@@ -15,11 +15,6 @@ import styles from './AdminProductsPage.module.css'
 type Product = ProductDraft & { created_at: string; updated_at: string }
 type Category = { id: string; name: string; image_path: string; sort_order: number }
 type Brand = { id: string; name: string; arabic_name: string | null }
-
-function normalizeBrandName(value: string) {
-  return value.replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
-    .replace(/[\u064b-\u065f\u0670\u0640]/g, '').toLowerCase().trim().replace(/\s+/g, ' ')
-}
 
 const emptyProduct: ProductDraft = {
   id: '', category_id: '', name: '', brand_id: '', description: '', image_path: '', price_egp: Number.NaN,
@@ -78,7 +73,11 @@ export default function AdminProductsPage() {
   }), [products, brands, categories])
   const searchResults = useMemo(() => searchIndex(index, search), [index, search])
   const nameSuggestions = useMemo(() => searchIndex({ products: index.products.map((product) => ({ ...product, brand: '', brandArabic: '', category: '' })), categories: [] }, editing?.id ? '' : editing?.name ?? '').products, [index, editing?.id, editing?.name])
-  const visibleProducts = useMemo(() => filterProducts(search.trim() ? searchResults.products : products, { search: '', categoryId, availableOnly, featuredOnly }), [products, search, searchResults, categoryId, availableOnly, featuredOnly])
+  const visibleProducts = useMemo(() => {
+    const productsById = new Map(products.map((product) => [product.id, product]))
+    const rows = search.trim() ? searchResults.products.flatMap((hit) => { const product = productsById.get(hit.id); return product ? [product] : [] }) : products
+    return filterProducts(rows, { search: '', categoryId, availableOnly, featuredOnly })
+  }, [products, search, searchResults, categoryId, availableOnly, featuredOnly])
 
   function openProduct(product?: Product) {
     setBrandSearch(brands.find((brand) => brand.id === product?.brand_id)?.name ?? '')
@@ -221,14 +220,14 @@ export default function AdminProductsPage() {
       return
     }
     const name = brandSearch.trim()
-    const existing = brands.find((brand) => [brand.name, brand.arabic_name ?? ''].some((value) => normalizeBrandName(value) === normalizeBrandName(name)))
+    const existing = brands.find((brand) => [brand.name, brand.arabic_name ?? ''].some((value) => normalizeSearch(value) === normalizeSearch(name)))
     if (existing) { setField('brand_id', existing.id); setBrandSearch(existing.name); combobox.closeDropdown(); return }
     setBusy(true)
     try {
       const { data, error: createError } = await client.from('brands').insert({ name }).select('id, name, arabic_name').single()
       let brand = data as Brand | null
       if (createError?.code === '23505') {
-        const result = await client.from('brands').select('id, name, arabic_name').eq('normalized_name', normalizeBrandName(name)).maybeSingle()
+        const result = await client.from('brands').select('id, name, arabic_name').eq('normalized_name', normalizeSearch(name)).maybeSingle()
         brand = result.data as Brand | null
       }
       if (!brand) throw new Error('Brand creation or lookup failed')
@@ -320,7 +319,7 @@ export default function AdminProductsPage() {
               <Combobox store={combobox} onOptionSubmit={(value) => void selectBrand(value)}>
                 <Combobox.Target><InputBase label="العلامة التجارية" aria-label="العلامة التجارية" required withAsterisk={false} value={brandSearch} onChange={(event) => { setBrandSearch(event.currentTarget.value); setField('brand_id', ''); combobox.openDropdown() }} onFocus={() => combobox.openDropdown()} /></Combobox.Target>
                 <Combobox.Dropdown><Combobox.Options>
-                  {brands.filter((brand) => [brand.name, brand.arabic_name ?? ''].some((name) => normalizeBrandName(name).includes(normalizeBrandName(brandSearch)))).map((brand) => <Combobox.Option value={brand.id} key={brand.id}>{brand.name}</Combobox.Option>)}
+                  {brands.filter((brand) => [brand.name, brand.arabic_name ?? ''].some((name) => normalizeSearch(name).includes(normalizeSearch(brandSearch)))).map((brand) => <Combobox.Option value={brand.id} key={brand.id}>{brand.name}</Combobox.Option>)}
                   {brandSearch.trim() && <Combobox.Option value="$create">إضافة «{brandSearch.trim()}»</Combobox.Option>}
                 </Combobox.Options></Combobox.Dropdown>
               </Combobox>

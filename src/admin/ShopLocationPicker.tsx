@@ -9,6 +9,7 @@ import { mapSearchResults, reserveSearchTime, type LocationPoint, type PlaceResu
 import styles from './ShopLocationPicker.module.css'
 
 let lastSearchTime = 0
+const GEOLOCATION_TIMEOUT_MS = 10_000
 
 export default function ShopLocationPicker({ value, onChange }: { value: LocationPoint; onChange: (point: LocationPoint) => void }) {
   const container = useRef<HTMLDivElement>(null)
@@ -37,8 +38,8 @@ export default function ShopLocationPicker({ value, onChange }: { value: Locatio
       const icon = leaflet.icon({ iconUrl: markerIcon, iconRetinaUrl: markerIconRetina, shadowUrl: markerShadow, iconSize: [25, 41], iconAnchor: [12, 41], shadowSize: [41, 41] })
       const pin = leaflet.marker([point.lat, point.lng], { icon, draggable: true }).addTo(instance)
       marker.current = pin
-      instance.on('click', (event) => change.current({ lat: event.latlng.lat, lng: event.latlng.lng }))
-      pin.on('dragend', () => { const point = pin.getLatLng(); change.current({ lat: point.lat, lng: point.lng }) })
+      instance.on('click', (event) => { const point = event.latlng.wrap(); change.current({ lat: point.lat, lng: point.lng }) })
+      pin.on('dragend', () => { const point = pin.getLatLng().wrap(); change.current({ lat: point.lat, lng: point.lng }) })
       leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' })
         .on('tileerror', () => setMapError('تعذر تحميل الخريطة. تحقق من اتصالك ثم أعد فتح الصفحة.'))
         .addTo(instance)
@@ -57,7 +58,7 @@ export default function ShopLocationPicker({ value, onChange }: { value: Locatio
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => onChange({ lat: coords.latitude, lng: coords.longitude }),
       (failure) => setError(failure.code === 1 ? 'اسمح بالوصول إلى موقعك في إعدادات المتصفح ثم حاول مرة أخرى.' : failure.code === 3 ? 'استغرق تحديد موقعك وقتًا طويلًا. حاول مرة أخرى.' : 'تعذر تحديد موقعك. تحقق من خدمة الموقع ثم حاول مرة أخرى.'),
-      { timeout: 10000 },
+      { timeout: GEOLOCATION_TIMEOUT_MS },
     )
   }
 
