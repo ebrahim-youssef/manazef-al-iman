@@ -29,7 +29,7 @@ const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixtu
 }, shopSettingsFixture: {
   shop_name: 'منظفات الإيمان',
   whatsapp_number: '201012345678',
-  phone_number: '0100 000 0000',
+  phone_number: '0109 796 1866',
   address: 'القاهرة، مصر',
   map_lat: 30.0444,
   map_lng: 31.2357,
@@ -77,8 +77,10 @@ describe('store routes', () => {
     const headerLink = await screen.findByRole('link', { name: 'تواصل معنا عبر واتساب' })
     expect(headerLink).toHaveAttribute('href', 'https://wa.me/201012345678')
     expect(screen.getByRole('link', { name: 'تيك توك' })).toHaveAttribute('href', 'https://tiktok.com/@shop')
-    expect(screen.getByRole('link', { name: '0100 000 0000' })).toHaveAttribute('href', 'tel:01000000000')
+    expect(screen.getByRole('link', { name: '0109 796 1866' })).toHaveAttribute('href', 'tel:01097961866')
+    expect(screen.getByRole('link', { name: '0109 796 1866' })).toHaveAttribute('dir', 'ltr')
     expect(screen.getByRole('link', { name: '01012345678' })).toHaveAttribute('href', 'https://wa.me/201012345678')
+    expect(screen.getByRole('link', { name: '01012345678' })).toHaveAttribute('dir', 'ltr')
   })
   it.each([
     ['/', 'كل احتياجات بيتك في مكان واحد'],
@@ -163,6 +165,7 @@ describe('cart', () => {
     expect(await screen.findByRole('heading', { name: 'بيانات التوصيل' })).toBeInTheDocument()
     expect(screen.getByLabelText('الاسم')).toBeInTheDocument()
     expect(screen.getByLabelText(/رقم الموبايل/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/رقم الموبايل/)).toHaveAttribute('dir', 'ltr')
     expect(screen.getByLabelText('المنطقة')).toBeInTheDocument()
     expect(screen.getByLabelText('العنوان')).toBeInTheDocument()
     expect(screen.getByLabelText('ملاحظات اختيارية')).toBeInTheDocument()

@@ -34,8 +34,8 @@ export default function Footer() {
         <div className="footer-col">
           <h4>تواصل معنا</h4>
           <ul className="footer-contact">
-            <li><span>الهاتف:</span> <a href={`tel:${settings.phone_number.replace(/[\s()-]/g, '')}`}>{settings.phone_number}</a></li>
-            <li><span>واتساب:</span> <a href={`https://wa.me/${settings.whatsapp_number}`} target="_blank" rel="noreferrer">{formatEgyptianMobile(settings.whatsapp_number)}</a></li>
+            <li><span>الهاتف:</span> <a dir="ltr" href={`tel:${settings.phone_number.replace(/[\s()-]/g, '')}`}>{settings.phone_number}</a></li>
+            <li><span>واتساب:</span> <a dir="ltr" href={`https://wa.me/${settings.whatsapp_number}`} target="_blank" rel="noreferrer">{formatEgyptianMobile(settings.whatsapp_number)}</a></li>
             <li><span>العنوان:</span> {settings.address}</li>
             <li><span>ساعات العمل:</span> {settings.opening_hours_text}</li>
           </ul>

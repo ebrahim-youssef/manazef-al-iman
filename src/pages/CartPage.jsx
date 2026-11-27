@@ -305,7 +305,7 @@ export default function CartPage() {
                 <p className="checkout-privacy">تُحفظ بياناتك على هذا الجهاز وتُرسل إلى المتجر داخل رسالة واتساب فقط.</p>
                 <div className="checkout-fields">
                   <label htmlFor="checkout-name">الاسم<input id="checkout-name" name="name" autoComplete="name" required value={form.name} onChange={updateField} /></label>
-                  <label htmlFor="checkout-phone">رقم الموبايل<input id="checkout-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" required value={form.phone} onChange={updateField} aria-describedby="phone-hint" /><span id="phone-hint">مثال: 01012345678</span></label>
+                  <label htmlFor="checkout-phone">رقم الموبايل<input id="checkout-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" dir="ltr" required value={form.phone} onChange={updateField} aria-describedby="phone-hint" /><span id="phone-hint">مثال: <bdi dir="ltr">01012345678</bdi></span></label>
                   <label htmlFor="checkout-area">المنطقة<select id="checkout-area" name="area" required value={form.area} onChange={updateField}><option value="">اختر المنطقة</option>{(settings.delivery_areas || []).map((area) => <option key={area} value={area}>{area}</option>)}</select></label>
                   <label className="checkout-address" htmlFor="checkout-address">العنوان<input id="checkout-address" name="address" autoComplete="street-address" required value={form.address} onChange={updateField} /></label>
                   <label className="checkout-address" htmlFor="checkout-notes">ملاحظات اختيارية<textarea id="checkout-notes" name="notes" rows="3" value={form.notes} onChange={updateField} /></label>
