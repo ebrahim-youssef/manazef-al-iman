@@ -1,4 +1,5 @@
 import { Plus, Spinner, Trash, X } from '@phosphor-icons/react'
+import { Combobox, InputBase, useCombobox } from '@mantine/core'
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { calculatePrice } from '../pricing/price'
 import { formatEGP } from '../utils/format'
@@ -11,9 +12,15 @@ import './AdminProductsPage.css'
 
 type Product = ProductDraft & { created_at: string; updated_at: string }
 type Category = { id: string; name: string; image_path: string; sort_order: number }
+type Brand = { id: string; name: string; arabic_name: string | null }
+
+function normalizeBrandName(value: string) {
+  return value.replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+    .replace(/[\u064b-\u065f\u0670\u0640]/g, '').toLowerCase().trim().replace(/\s+/g, ' ')
+}
 
 const emptyProduct: ProductDraft = {
-  id: '', category_id: '', name: '', brand: '', description: '', image_path: '', price_egp: Number.NaN,
+  id: '', category_id: '', name: '', brand_id: '', description: '', image_path: '', price_egp: Number.NaN,
   is_available: true, is_featured: false, sale_type: 'none', sale_value: null, sale_starts_at: null,
   sale_ends_at: null, friday_type: 'none', friday_value: null,
 }
@@ -22,6 +29,9 @@ export default function AdminProductsPage() {
   const client = useAdminClient()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [brands, setBrands] = useState<Brand[]>([])
+  const [brandSearch, setBrandSearch] = useState('')
+  const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() })
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('all')
   const [availableOnly, setAvailableOnly] = useState(false)
@@ -39,18 +49,20 @@ export default function AdminProductsPage() {
   const [busy, setBusy] = useState(false)
 
   const loadProducts = useCallback(async () => {
-    const [{ data, error: productError }, { data: categoryData, error: categoryError }] = await Promise.all([
+    const [{ data, error: productError }, { data: categoryData, error: categoryError }, { data: brandData, error: brandError }] = await Promise.all([
       client.from('products').select('*').order('created_at', { ascending: false }),
       client.from('categories').select('id, name, image_path, sort_order').order('sort_order').order('id'),
+      client.from('brands').select('id, name, arabic_name').order('name'),
     ])
     setLoading(false)
-    if (productError || categoryError) {
+    if (productError || categoryError || brandError) {
       setError('تعذر تحميل المنتجات. تحقق من الاتصال ثم حاول مجددًا.')
       return
     }
     setError('')
     setProducts((data ?? []) as Product[])
     setCategories((categoryData ?? []) as Category[])
+    setBrands((brandData ?? []) as Brand[])
   }, [client])
 
   // oxlint-disable-next-line react/set-state-in-effect -- Initial rows are loaded from Supabase after mount.
@@ -59,6 +71,7 @@ export default function AdminProductsPage() {
   const visibleProducts = useMemo(() => filterProducts(products, { search, categoryId, availableOnly, featuredOnly }), [products, search, categoryId, availableOnly, featuredOnly])
 
   function openProduct(product?: Product) {
+    setBrandSearch(brands.find((brand) => brand.id === product?.brand_id)?.name ?? '')
     setPreviewTime(new Date())
     setEditing(product ? {
       ...product,
@@ -77,6 +90,7 @@ export default function AdminProductsPage() {
   async function saveProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!editing) return
+    if (!editing.brand_id) { setError('اختر العلامة التجارية أو أضفها أولًا.'); return }
     const validationError = validateProduct(editing)
     if (validationError) {
       setError(validationError)
@@ -145,7 +159,7 @@ export default function AdminProductsPage() {
       await loadProducts()
       if (imageCleanupFailed) setError('تم حفظ المنتج، لكن تعذر حذف الصورة السابقة.')
     } catch {
-      setError(imageCleanupFailed ? 'تعذر حفظ المنتج وحذف الصور المرفوعة. تحقق من التخزين ثم حاول مجددًا.' : 'تعذر حفظ المنتج. حاول مجددًا.')
+      setError(imageCleanupFailed ? 'تعذر حفظ المنتج وحذف الصور المرفوعة. تحقق من التخزين ثم حاول مجددًا.' : 'تعذر حفظ المنتج. تحقق من العلامة التجارية ثم حاول مجددًا.')
     } finally {
       setBusy(false)
     }
@@ -187,6 +201,38 @@ export default function AdminProductsPage() {
 
   function setField<K extends keyof ProductDraft>(field: K, value: ProductDraft[K]) {
     setEditing((current) => current ? { ...current, [field]: value } : current)
+  }
+
+  async function selectBrand(value: string) {
+    if (value !== '$create') {
+      const brand = brands.find((item) => item.id === value)
+      if (brand) { setField('brand_id', brand.id); setBrandSearch(brand.name) }
+      combobox.closeDropdown()
+      return
+    }
+    const name = brandSearch.trim()
+    const existing = brands.find((brand) => [brand.name, brand.arabic_name ?? ''].some((value) => normalizeBrandName(value) === normalizeBrandName(name)))
+    if (existing) { setField('brand_id', existing.id); setBrandSearch(existing.name); combobox.closeDropdown(); return }
+    setBusy(true)
+    try {
+      const { data, error: createError } = await client.from('brands').insert({ name }).select('id, name, arabic_name').single()
+      let brand = data as Brand | null
+      if (createError?.code === '23505') {
+        const result = await client.from('brands').select('id, name, arabic_name').eq('normalized_name', normalizeBrandName(name)).maybeSingle()
+        brand = result.data as Brand | null
+      }
+      if (!brand) throw new Error('Brand creation or lookup failed')
+      const selected = brand
+      setBrands((current) => [...current.filter((item) => item.id !== selected.id), selected])
+      setField('brand_id', brand.id)
+      setBrandSearch(brand.name)
+      setError('')
+      combobox.closeDropdown()
+    } catch {
+      setError('تعذر إضافة العلامة التجارية. تحقق من الاتصال ثم حاول مجددًا.')
+    } finally {
+      setBusy(false)
+    }
   }
 
   let previewStartsAt: string | null = null
@@ -247,7 +293,13 @@ export default function AdminProductsPage() {
             <form onSubmit={(event) => void saveProduct(event)}>
               <label>القسم<select required value={editing.category_id} onChange={(event) => setField('category_id', event.target.value)}><option value="" disabled>اختر القسم</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>
               <label>اسم المنتج<input required value={editing.name} onChange={(event) => setField('name', event.target.value)} /></label>
-              <label>العلامة التجارية<input required value={editing.brand} onChange={(event) => setField('brand', event.target.value)} /></label>
+              <Combobox store={combobox} onOptionSubmit={(value) => void selectBrand(value)}>
+                <Combobox.Target><InputBase label="العلامة التجارية" aria-label="العلامة التجارية" required value={brandSearch} onChange={(event) => { setBrandSearch(event.currentTarget.value); setField('brand_id', ''); combobox.openDropdown() }} onFocus={() => combobox.openDropdown()} /></Combobox.Target>
+                <Combobox.Dropdown><Combobox.Options>
+                  {brands.filter((brand) => [brand.name, brand.arabic_name ?? ''].some((name) => normalizeBrandName(name).includes(normalizeBrandName(brandSearch)))).map((brand) => <Combobox.Option value={brand.id} key={brand.id}>{brand.name}</Combobox.Option>)}
+                  {brandSearch.trim() && <Combobox.Option value="$create">إضافة «{brandSearch.trim()}»</Combobox.Option>}
+                </Combobox.Options></Combobox.Dropdown>
+              </Combobox>
               <label>الوصف<textarea rows={3} value={editing.description} onChange={(event) => setField('description', event.target.value)} /></label>
               <label>السعر بالجنيه<input required type="number" min="1" step="1" value={Number.isNaN(editing.price_egp) ? '' : editing.price_egp} onChange={(event) => setField('price_egp', event.target.value === '' ? Number.NaN : Number(event.target.value))} /></label>
               <div className="admin-product-checks"><label><input type="checkbox" checked={editing.is_available} onChange={(event) => setField('is_available', event.target.checked)} /> متوفر</label><label><input type="checkbox" checked={editing.is_featured} onChange={(event) => setField('is_featured', event.target.checked)} /> مختار لك</label></div>

@@ -4,7 +4,7 @@ export type ProductDraft = {
   id: string
   category_id: string
   name: string
-  brand: string
+  brand_id: string
   description: string
   image_path: string
   price_egp: number

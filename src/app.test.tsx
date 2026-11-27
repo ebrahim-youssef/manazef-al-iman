@@ -23,11 +23,11 @@ const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixtu
   ],
   products: [{
     id: 'cos-1', name: 'شامبو Sunsilk لشعر ناعم 600 مل', category: 'cosmetics', price: 85,
-    originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Sunsilk', image: '', detailImage: '', description: '',
+    originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Sunsilk', brandArabicName: null, image: '', detailImage: '', description: '',
     available: true, bestSeller: true, createdAt: '2026-03-01',
   }, {
     id: 'pril', name: 'بريل', category: 'cleaners', price: 30,
-    originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Pril', image: '', detailImage: '', description: '',
+    originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Pril', brandArabicName: null, image: '', detailImage: '', description: '',
     available: true, bestSeller: false, createdAt: '2026-03-01',
   }],
   settings: {},

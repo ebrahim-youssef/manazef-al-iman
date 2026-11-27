@@ -11,7 +11,7 @@ type ProductRow = {
   id: string
   category_id: string
   name: string
-  brand: string
+  brands: { name: string; arabic_name: string | null }
   description: string
   image_path: string
   price_egp: number
@@ -31,6 +31,7 @@ type CatalogProduct = {
   category: string
   name: string
   brand: string
+  brandArabicName: string | null
   description: string
   price: number
   originalPrice: number | null
@@ -76,7 +77,7 @@ async function readCatalog(): Promise<CatalogData> {
         if (result.error) logCatalogFailure('categories', result.error)
         return result
       }),
-      client.from('products').select('*').order('created_at', { ascending: false }).then((result) => {
+      client.from('products').select('*, brands(name, arabic_name)').order('created_at', { ascending: false }).then((result) => {
         if (result.error) logCatalogFailure('products', result.error)
         return result
       }),
@@ -102,6 +103,8 @@ async function readCatalog(): Promise<CatalogData> {
 
         return {
           ...product,
+          brand: product.brands.name,
+          brandArabicName: product.brands.arabic_name,
           category: product.category_id,
           price: pricing.shownPrice,
           image: getImageUrl(product.image_path, 'card', env.SUPABASE_URL),
@@ -134,6 +137,6 @@ export const getSearchIndex = createServerFn({ method: 'GET' })
     return {
       unavailable: false as const,
       categories: catalog.categories.map(({ id, slug, name }) => ({ id, slug, name })),
-      products: catalog.products.map(({ id, name, brand, category, image, price }) => ({ id, name, brand, category, image, price })),
+      products: catalog.products.map(({ id, name, brand, brandArabicName, category, image, price }) => ({ id, name, brand, brandArabic: brandArabicName, category, image, price })),
     }
   })
