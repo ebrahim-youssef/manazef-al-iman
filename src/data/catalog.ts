@@ -77,23 +77,14 @@ async function readCatalog(): Promise<CatalogData> {
       client.from('categories').select('*').order('sort_order').order('id').then((result) => {
         if (result.error) logCatalogFailure('categories', result.error)
         return result
-      }, (error) => {
-        logCatalogFailure('categories', error)
-        throw error
       }),
       client.from('products').select('*').order('created_at', { ascending: false }).then((result) => {
         if (result.error) logCatalogFailure('products', result.error)
         return result
-      }, (error) => {
-        logCatalogFailure('products', error)
-        throw error
       }),
       client.from('settings').select('*').maybeSingle().then((result) => {
         if (result.error) logCatalogFailure('settings', result.error)
         return result
-      }, (error) => {
-        logCatalogFailure('settings', error)
-        throw error
       }),
     ])
     if (categoryError || productError || settingsError) return { unavailable: true }
