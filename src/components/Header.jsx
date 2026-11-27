@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useLoaderData, useNavigate } from '@tanstack/react-router';
-import { List, MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
+import { MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
+import { ActionIcon, Anchor, Burger, Container, Group, TextInput } from '@mantine/core';
 import { useCart } from '../context/useCart';
-import './Header.css';
+import styles from './Header.module.css';
 
 export default function Header() {
   const settings = useLoaderData({ from: '__root__' });
@@ -38,33 +39,32 @@ export default function Header() {
   };
 
   return (
-    <header className="site-header">
-      <div className="container header-bar">
-        <button
+    <header className={styles['site-header']}>
+      <Container className={'container' + ' ' + styles['header-bar']}>
+        <Burger
           type="button"
-          className="icon-btn menu-toggle"
+          className={styles['icon-btn'] + ' ' + styles['menu-toggle']}
           aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
           aria-expanded={isMenuOpen}
           aria-controls="site-nav"
+          opened={isMenuOpen}
           onClick={toggleMenu}
-        >
-          {isMenuOpen ? <X weight="bold" /> : <List weight="bold" />}
-        </button>
+        />
 
-        <Link to="/" className="brand" onClick={closeAll}>
+        <Link to="/" className={styles['brand']} onClick={closeAll}>
           {settings.shop_name}
         </Link>
 
-        <nav id="site-nav" className={`site-nav ${isMenuOpen ? 'open' : ''}`} aria-label="الأقسام">
-          <ul className="nav-list">
+        <nav id="site-nav" className={`${styles["site-nav"]} ${isMenuOpen ? styles.open : ""}`} aria-label="الأقسام">
+          <ul className={styles['nav-list']}>
             {categories.map((category) => (
               <li key={category.id}>
                 <Link
                   to="/category/$slug"
                   params={{ slug: category.slug }}
                   activeOptions={{ exact: false }}
-                  activeProps={{ className: 'active' }}
-                  className="nav-link"
+                  activeProps={{ className: styles.active }}
+                  className={styles['nav-link']}
                   onClick={closeAll}
                 >
                   {category.name}
@@ -72,40 +72,41 @@ export default function Header() {
               </li>
             ))}
           </ul>
-          <a href={`https://wa.me/${settings.whatsapp_number}`} target="_blank" rel="noreferrer" className="nav-whatsapp">
+          <Anchor href={`https://wa.me/${settings.whatsapp_number}`} target="_blank" rel="noreferrer" className={styles['nav-whatsapp']}>
             <WhatsappLogo aria-hidden="true" />
             تواصل معنا عبر واتساب
-          </a>
+          </Anchor>
         </nav>
 
-        <div className="header-actions">
-          <button
+        <Group className={styles['header-actions']}>
+          <ActionIcon
             type="button"
-            className="icon-btn"
+            className={styles['icon-btn']}
             aria-label={isSearchOpen ? 'إغلاق البحث' : 'بحث'}
             aria-expanded={isSearchOpen}
             aria-controls="site-search"
             onClick={toggleSearch}
           >
             {isSearchOpen ? <X weight="bold" /> : <MagnifyingGlass />}
-          </button>
-          <Link to="/cart" className="icon-btn cart-btn" aria-label={`سلة التسوق، ${itemCount} قطعة`} onClick={closeAll}>
+          </ActionIcon>
+          <Link to="/cart" className={styles['icon-btn'] + ' ' + styles['cart-btn']} aria-label={`سلة التسوق، ${itemCount} قطعة`} onClick={closeAll}>
             <ShoppingCart />
-            {itemCount > 0 && <span className="cart-count">{itemCount}</span>}
+            {itemCount > 0 && <span className={styles['cart-count']}>{itemCount}</span>}
           </Link>
-        </div>
-      </div>
+        </Group>
+      </Container>
 
       {isSearchOpen && (
-        <div id="site-search" className="search-panel">
+        <div id="site-search" className={styles['search-panel']}>
           <form
-            className="container search-panel-form"
+            className={'container' + ' ' + styles['search-panel-form']}
             role="search"
             onSubmit={submitSearch}
             onKeyDown={(e) => e.key === 'Escape' && setIsSearchOpen(false)}
           >
             <MagnifyingGlass aria-hidden="true" />
-            <input
+            <TextInput
+              className={styles['search-input']}
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -113,7 +114,7 @@ export default function Header() {
               aria-label="البحث في المتجر"
               autoFocus
             />
-            <button type="submit" className="btn btn-primary">بحث</button>
+            <button type="submit" className={'btn' + ' ' + 'btn-primary'}>بحث</button>
           </form>
         </div>
       )}

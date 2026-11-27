@@ -70,6 +70,18 @@ afterEach(() => {
 })
 
 describe('store routes', () => {
+  it('keeps the right-to-left shell, search, cart and phone usable', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
+    render(<RouterProvider router={router} />)
+    expect(await screen.findByRole('link', { name: /سلة التسوق/ }, { timeout: 5_000 })).toHaveAttribute('href', '/cart')
+    expect(document.documentElement).toHaveAttribute('dir', 'rtl')
+    expect(screen.getByRole('link', { name: '0109 796 1866' })).toHaveAttribute('href', 'tel:01097961866')
+    fireEvent.click(screen.getByRole('button', { name: 'بحث' }))
+    fireEvent.change(screen.getByRole('searchbox', { name: 'البحث في المتجر' }), { target: { value: 'شامبو' } })
+    fireEvent.submit(screen.getByRole('search'))
+    await waitFor(() => expect(router.state.location.href).toContain('/search?q='))
+  })
   it('uses the current shop settings in the header and footer', async () => {
     const router = getRouter()
     router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
