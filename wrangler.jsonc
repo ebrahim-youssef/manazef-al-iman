@@ -3,5 +3,11 @@
   "name": "manazef-al-iman",
   "compatibility_date": "2026-11-26",
   "main": "@tanstack/react-start/server-entry",
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Public values only. SUPABASE_SERVICE_ROLE_KEY and TURNSTILE_SECRET_KEY are Worker secrets.
+  "vars": {
+    "SUPABASE_URL": "https://gvvkvxevywolecqtzybp.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_1XspF0ZJaQSjPh0V1c4STg_J8ACbDvV",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAGVdzrHBAM0bu4jK"
+  }
 }
