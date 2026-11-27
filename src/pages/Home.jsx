@@ -1,3 +1,4 @@
+import { Box } from '@mantine/core';
 import { Link } from '@tanstack/react-router';
 import { CaretLeft, MapPinLine, ShoppingCartSimple, WhatsappLogo } from '@phosphor-icons/react';
 import HeroBanner from '../components/HeroBanner';
@@ -6,7 +7,7 @@ import ProductGrid from '../components/ProductGrid';
 import { Route } from '../routes/index';
 import { CatalogUnavailable } from '../components/CatalogUnavailable';
 import { getImageUrl } from '../utils/imageUrl';
-import './Home.css';
+import styles from './Home.module.css';
 
 const PRODUCTS_PER_SECTION = 4;
 const ORDER_STEPS = [
@@ -17,40 +18,40 @@ const ORDER_STEPS = [
 
 function OrderSteps() {
   return (
-    <section className="home-order section" aria-labelledby="home-order-title">
-      <div className="container">
+    <section className={styles['home-order'] + ' ' + 'section'} aria-labelledby="home-order-title">
+      <Box className="container">
         <h2 className="section-title" id="home-order-title">كيف تطلب؟</h2>
-        <ol className="home-order-steps">
+        <ol className={styles['home-order-steps']}>
           {ORDER_STEPS.map(({ label, Icon }) => (
             <li key={label}>
-              <span className="home-order-icon" aria-hidden="true"><Icon weight="duotone" /></span>
+              <span className={styles['home-order-icon']} aria-hidden="true"><Icon weight="duotone" /></span>
               {label}
             </li>
           ))}
         </ol>
-        <p className="home-order-note">يتم الاتفاق على مصاريف التوصيل في المحادثة.</p>
-      </div>
+        <p className={styles['home-order-note']}>يتم الاتفاق على مصاريف التوصيل في المحادثة.</p>
+      </Box>
     </section>
   );
 }
 
 function SectionHeader({ title, subtitle, badge, linkTo, linkLabel, titleId }) {
   return (
-    <div className="section-header">
-      <div>
-        <div className="section-title-row">
+    <Box className="section-header">
+      <Box>
+        <Box className={styles['section-title-row']}>
           <h2 className="section-title" id={titleId}>{title}</h2>
-          {badge && <span className="badge badge-today">{badge}</span>}
-        </div>
+          {badge && <span className={'badge' + ' ' + styles['badge-today']}>{badge}</span>}
+        </Box>
         {subtitle && <p className="section-subtitle">{subtitle}</p>}
-      </div>
+      </Box>
       {linkTo && (
         <Link to={linkTo} className="see-all">
           {linkLabel}
           <CaretLeft weight="bold" aria-hidden="true" />
         </Link>
       )}
-    </div>
+    </Box>
   );
 }
 
@@ -69,19 +70,19 @@ export default function Home() {
       <OrderSteps />
 
       <section className="section" id="categories">
-        <div className="container">
+        <Box className="container">
           <SectionHeader title="تسوق حسب القسم" />
-          <div className="home-categories-grid">
+          <Box className={styles['home-categories-grid']}>
             {categories.map((cat) => (
             <CategoryCard key={cat.id} category={cat} productCount={products.filter((product) => product.category === cat.id).length} />
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
       </section>
 
       {saleOffers.length > 0 && (
-        <section className="section section-alt" aria-labelledby="home-offers-title">
-          <div className="container">
+        <section className={'section' + ' ' + styles['section-alt']} aria-labelledby="home-offers-title">
+          <Box className="container">
             <SectionHeader
               title="العروض"
               subtitle="خصومات لفترة محدودة على منتجات مختارة."
@@ -90,12 +91,12 @@ export default function Home() {
               titleId="home-offers-title"
             />
             <ProductGrid products={saleOffers} />
-          </div>
+          </Box>
         </section>
       )}
 
-      <section className="section home-friday" aria-labelledby="home-friday-title">
-        <div className="container">
+      <section className={'section' + ' ' + styles['home-friday']} aria-labelledby="home-friday-title">
+        <Box className="container">
           <SectionHeader
             title="عروض الجمعة"
             subtitle="أسعار خاصة على منتجات مختارة كل يوم جمعة."
@@ -103,31 +104,31 @@ export default function Home() {
             titleId="home-friday-title"
           />
           <ProductGrid products={fridayDeals} />
-        </div>
+        </Box>
       </section>
 
       <section className="section">
-        <div className="container">
+        <Box className="container">
           <SectionHeader title="مختارات لك" />
           <ProductGrid products={featuredProducts} />
-        </div>
+        </Box>
       </section>
 
-      <section className="wholesale-banner">
-        <div className="container wholesale-banner-inner">
-          <div>
+      <section className={styles['wholesale-banner']}>
+        <Box className={'container' + ' ' + styles['wholesale-banner-inner']}>
+          <Box>
             <h2>تسوق بالجملة</h2>
             <p>وفر أكتر مع عروض الكراتين والكميات. أسعار خاصة للكميات مع توضيح كامل لمحتوى كل كرتونة.</p>
           <Link to="/category/$slug" params={{ slug: 'wholesale' }} className="btn btn-primary">اكتشف منتجات الجملة</Link>
-          </div>
-          <div className="wholesale-banner-image">
+          </Box>
+          <Box className={styles['wholesale-banner-image']}>
             <img
               src={getImageUrl('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80')}
               alt=""
               loading="lazy"
             />
-          </div>
-        </div>
+          </Box>
+        </Box>
       </section>
     </>
   );

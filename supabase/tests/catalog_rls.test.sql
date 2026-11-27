@@ -15,7 +15,7 @@ select is((select count(*)::integer from public.settings), 1, 'anon reads settin
 select throws_ok($$insert into public.categories(id, slug, name, image_path) values ('blocked', 'blocked', 'blocked', '')$$, '42501', null, 'anon cannot insert categories');
 select throws_ok($$update public.categories set name = 'blocked'$$, '42501', null, 'anon cannot update categories');
 select throws_ok($$delete from public.categories$$, '42501', null, 'anon cannot delete categories');
-select throws_ok($$insert into public.products(id, category_id, name, brand, image_path, price_egp) values ('blocked', 'cleaners', 'x', 'x', '', 1)$$, '42501', null, 'anon cannot insert products');
+select throws_ok($$insert into public.products(id, category_id, name, brand_id, image_path, price_egp) values ('blocked', 'cleaners', 'x', (select id from public.brands limit 1), '', 1)$$, '42501', null, 'anon cannot insert products');
 select throws_ok($$update public.products set name = 'blocked'$$, '42501', null, 'anon cannot update products');
 select throws_ok($$delete from public.products$$, '42501', null, 'anon cannot delete products');
 select throws_ok($$insert into public.settings(id, shop_name, whatsapp_number, phone_number, address, opening_hours_text, facebook_url, instagram_url) values (false, 'x', 'x', 'x', 'x', 'x', 'x', 'x')$$, '42501', null, 'anon cannot insert settings');
@@ -25,7 +25,7 @@ select throws_ok($$delete from public.settings$$, '42501', null, 'anon cannot de
 set local role authenticated;
 select set_config('request.jwt.claims', '{"role":"authenticated","sub":"00000000-0000-4000-8000-000000000002"}', true);
 select throws_ok($$insert into public.categories(id, slug, name, image_path) values ('blocked', 'blocked', 'blocked', '')$$, '42501', null, 'non-owner cannot insert categories');
-select throws_ok($$insert into public.products(id, category_id, name, brand, image_path, price_egp) values ('blocked', 'cleaners', 'x', 'x', '', 1)$$, '42501', null, 'non-owner cannot insert products');
+select throws_ok($$insert into public.products(id, category_id, name, brand_id, image_path, price_egp) values ('blocked', 'cleaners', 'x', (select id from public.brands limit 1), '', 1)$$, '42501', null, 'non-owner cannot insert products');
 select throws_ok($$insert into public.settings(id, shop_name, whatsapp_number, phone_number, address, opening_hours_text, facebook_url, instagram_url) values (false, 'x', 'x', 'x', 'x', 'x', 'x', 'x')$$, '42501', null, 'non-owner cannot insert settings');
 update public.categories set name = 'blocked';
 select is((select count(*)::integer from public.categories where name = 'blocked'), 0, 'non-owner cannot update categories');
