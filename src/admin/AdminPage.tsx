@@ -1,3 +1,4 @@
+import { Button, TextInput, UnstyledButton } from '@mantine/core'
 import { ArrowClockwise, ArrowRight, ArrowUpLeft, ClipboardText, MagnifyingGlass, Spinner } from '@phosphor-icons/react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
@@ -11,7 +12,7 @@ import {
   type OrderFilter,
   type OrderStatus,
 } from './adminOrders'
-import './AdminPage.css'
+import styles from './AdminArea.module.css'
 
 const statusNames: Record<OrderStatus, string> = {
   new: 'جديد',
@@ -97,33 +98,33 @@ export default function AdminPage() {
   const visibleOrders = filterOrders(orders, statusFilter, search)
 
   return (
-    <main className="admin-shell" dir="rtl">
-      <div className="admin-page">
-        <header className="admin-header">
+    <main className={styles['admin-shell']} dir="rtl">
+      <div className={styles['admin-page']}>
+        <header className={styles['admin-header']}>
           {selectedOrder ? (
-            <button className="admin-back-button" type="button" onClick={() => { selectedOrderId.current = null; setSelectedOrder(null); setItems(null) }} aria-label="العودة إلى الطلبات">
+            <UnstyledButton className={styles['admin-back-button']} type="button" onClick={() => { selectedOrderId.current = null; setSelectedOrder(null); setItems(null) }} aria-label="العودة إلى الطلبات">
               <ArrowRight size={20} />
-            </button>
-          ) : <span className="admin-brand-mark" aria-hidden="true"><ClipboardText size={22} weight="duotone" /></span>}
-          <div className="admin-header-copy">
+            </UnstyledButton>
+          ) : <span className={styles['admin-brand-mark']} aria-hidden="true"><ClipboardText size={22} weight="duotone" /></span>}
+          <div className={styles['admin-header-copy']}>
             <h1>{selectedOrder ? `طلب ${selectedOrder.code}` : 'الطلبات'}</h1>
             <p>{selectedOrder ? formatOrderDate(selectedOrder.created_at) : 'متابعة طلبات المتجر'}</p>
           </div>
         </header>
 
         {selectedOrder ? (
-          <section className="admin-detail" aria-label={`تفاصيل الطلب ${selectedOrder.code}`}>
-            <div className="admin-detail-summary">
-              <div><span>حالة الطلب</span><strong className={`admin-status admin-status-${selectedOrder.status}`}>{statusNames[selectedOrder.status]}</strong></div>
+          <section className={styles['admin-detail']} aria-label={`تفاصيل الطلب ${selectedOrder.code}`}>
+            <div className={styles['admin-detail-summary']}>
+              <div><span>حالة الطلب</span><strong className={`${styles['admin-status']} ${styles[`admin-status-${selectedOrder.status}`]}`}>{statusNames[selectedOrder.status]}</strong></div>
               <div><span>عدد القطع</span><strong>{new Intl.NumberFormat('ar-EG').format(selectedOrder.item_count)}</strong></div>
               <div><span>الإجمالي</span><strong>{formatOrderTotal(selectedOrder.total_egp)}</strong></div>
             </div>
             <h2>المنتجات</h2>
-            {items === null && !detailError && <p className="admin-loading"><Spinner size={18} className="admin-spin" /> جارٍ تحميل المنتجات…</p>}
-            {detailError && <p className="admin-error" role="alert">{detailError}</p>}
-            {items && items.length === 0 && <p className="admin-empty">لا توجد منتجات مسجلة في هذا الطلب.</p>}
+            {items === null && !detailError && <p className={styles['admin-loading']}><Spinner size={18} className={styles['admin-spin']} /> جارٍ تحميل المنتجات…</p>}
+            {detailError && <p className={styles['admin-error']} role="alert">{detailError}</p>}
+            {items && items.length === 0 && <p className={styles['admin-empty']}>لا توجد منتجات مسجلة في هذا الطلب.</p>}
             {items && items.length > 0 && (
-              <ul className="admin-item-list">
+              <ul className={styles['admin-item-list']}>
                 {items.map((item) => (
                   <li key={item.id}>
                     <div><strong>{item.product_name}</strong><span>{item.quantity} × {formatOrderTotal(item.unit_price_egp)}{item.unit ? ` · ${item.unit}` : ''}</span></div>
@@ -132,46 +133,42 @@ export default function AdminPage() {
                 ))}
               </ul>
             )}
-            <div className="admin-status-actions" aria-label="تغيير حالة الطلب">
-              {selectedOrder.status !== 'fulfilled' && <button type="button" className="admin-primary-button" onClick={() => changeStatus('fulfilled')} disabled={changingStatus}>تم التسليم</button>}
-              {selectedOrder.status !== 'cancelled' && <button type="button" className="admin-danger-button" onClick={() => changeStatus('cancelled')} disabled={changingStatus}>إلغاء الطلب</button>}
-              {selectedOrder.status !== 'new' && <button type="button" className="admin-secondary-button" onClick={() => changeStatus('new')} disabled={changingStatus}>إعادة إلى جديد</button>}
+            <div className={styles['admin-status-actions']} aria-label="تغيير حالة الطلب">
+              {selectedOrder.status !== 'fulfilled' && <Button type="button" className={styles['admin-primary-button']} onClick={() => changeStatus('fulfilled')} disabled={changingStatus}>تم التسليم</Button>}
+              {selectedOrder.status !== 'cancelled' && <Button type="button" className={styles['admin-danger-button']} onClick={() => changeStatus('cancelled')} disabled={changingStatus}>إلغاء الطلب</Button>}
+              {selectedOrder.status !== 'new' && <Button type="button" className={styles['admin-secondary-button']} onClick={() => changeStatus('new')} disabled={changingStatus}>إعادة إلى جديد</Button>}
             </div>
           </section>
         ) : (
           <>
-            <section className="admin-controls" aria-label="البحث والتصفية">
-              <button className="admin-refresh-button" type="button" onClick={refreshOrders} disabled={isRefreshing}>
-                {isRefreshing ? <Spinner size={18} className="admin-spin" aria-hidden="true" /> : <ArrowClockwise size={18} aria-hidden="true" />}
+            <section className={styles['admin-controls']} aria-label="البحث والتصفية">
+              <UnstyledButton className={styles['admin-refresh-button']} type="button" onClick={refreshOrders} disabled={isRefreshing}>
+                {isRefreshing ? <Spinner size={18} className={styles['admin-spin']} aria-hidden="true" /> : <ArrowClockwise size={18} aria-hidden="true" />}
                 {isRefreshing ? 'جارٍ تحديث الطلبات…' : 'تحديث الطلبات'}
-              </button>
-              <label className="admin-search">
-                <MagnifyingGlass size={19} aria-hidden="true" />
-                <span className="admin-visually-hidden">البحث برقم الطلب</span>
-                <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ابحث برقم الطلب" />
-              </label>
-              <div className="admin-filter-list" role="group" aria-label="تصفية حسب الحالة">
+              </UnstyledButton>
+              <TextInput aria-label="البحث برقم الطلب" leftSection={<MagnifyingGlass size={19} aria-hidden="true" />} value={search} onChange={(event) => setSearch(event.currentTarget.value)} placeholder="ابحث برقم الطلب" />
+              <div className={styles['admin-filter-list']} role="group" aria-label="تصفية حسب الحالة">
                 {(['all', 'new', 'fulfilled', 'cancelled'] as const).map((filter) => (
-                  <button key={filter} type="button" className={statusFilter === filter ? 'is-selected' : ''} onClick={() => setStatusFilter(filter)} aria-pressed={statusFilter === filter}>
+                  <UnstyledButton key={filter} type="button" className={statusFilter === filter ? styles['is-selected'] : ''} onClick={() => setStatusFilter(filter)} aria-pressed={statusFilter === filter}>
                     {filter === 'all' ? 'الكل' : statusNames[filter]}
-                  </button>
+                  </UnstyledButton>
                 ))}
               </div>
             </section>
-            {ordersError && <p className="admin-error" role="alert">{ordersError}</p>}
-            {!ordersError && visibleOrders.length === 0 && <p className="admin-empty">{orders.length ? 'لا توجد طلبات تطابق البحث.' : 'لا توجد طلبات حتى الآن.'}</p>}
+            {ordersError && <p className={styles['admin-error']} role="alert">{ordersError}</p>}
+            {!ordersError && visibleOrders.length === 0 && <p className={styles['admin-empty']}>{orders.length ? 'لا توجد طلبات تطابق البحث.' : 'لا توجد طلبات حتى الآن.'}</p>}
             {visibleOrders.length > 0 && (
-              <ul className="admin-order-list">
+              <ul className={styles['admin-order-list']}>
                 {visibleOrders.map((order) => (
                   <li key={order.id}>
-                    <button type="button" className="admin-order-row" onClick={() => openOrder(order)}>
-                      <span className="admin-order-code">{order.code}</span>
-                      <span className={`admin-status admin-status-${order.status}`}>{statusNames[order.status]}</span>
-                      <span className="admin-order-date">{formatOrderDate(order.created_at)}</span>
-                      <span className="admin-order-count">{new Intl.NumberFormat('ar-EG').format(order.item_count)} قطع</span>
-                      <strong className="admin-order-total">{formatOrderTotal(order.total_egp)}</strong>
-                      <ArrowUpLeft className="admin-order-arrow" size={17} aria-hidden="true" />
-                    </button>
+                    <UnstyledButton type="button" className={styles['admin-order-row']} onClick={() => openOrder(order)}>
+                      <span className={styles['admin-order-code']}>{order.code}</span>
+                      <span className={`${styles['admin-status']} ${styles[`admin-status-${order.status}`]}`}>{statusNames[order.status]}</span>
+                      <span className={styles['admin-order-date']}>{formatOrderDate(order.created_at)}</span>
+                      <span className={styles['admin-order-count']}>{new Intl.NumberFormat('ar-EG').format(order.item_count)} قطع</span>
+                      <strong className={styles['admin-order-total']}>{formatOrderTotal(order.total_egp)}</strong>
+                      <ArrowUpLeft className={styles['admin-order-arrow']} size={17} aria-hidden="true" />
+                    </UnstyledButton>
                   </li>
                 ))}
               </ul>

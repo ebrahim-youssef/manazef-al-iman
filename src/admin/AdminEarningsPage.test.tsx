@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { TestProviders } from '../test-utils'
 import { AdminClientContext } from './AdminClientContext'
 import AdminEarningsPage from './AdminEarningsPage'
 
@@ -18,7 +19,7 @@ afterEach(() => {
 
 describe('admin earnings page', () => {
   it('loads fulfilled orders and shows each summary period', async () => {
-    render(<AdminClientContext.Provider value={client as never}><AdminEarningsPage /></AdminClientContext.Provider>)
+    render(<TestProviders><AdminClientContext.Provider value={client as never}><AdminEarningsPage /></AdminClientContext.Provider></TestProviders>)
 
     expect(await screen.findByRole('heading', { name: 'الأرباح' })).toBeInTheDocument()
     expect(await screen.findByText('لا تشمل مصاريف التوصيل.')).toBeInTheDocument()

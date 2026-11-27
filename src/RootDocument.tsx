@@ -9,7 +9,7 @@ import ScrollToTop from './components/ScrollToTop'
 import VisitUs from './components/VisitUs'
 import type { getShopSettings } from './data/settings'
 import './App.css'
-import './AdminFrame.css'
+import adminFrame from './AdminFrame.module.css'
 import './index.css'
 
 export default function RootDocument({ settings, isAdmin }: { settings: Awaited<ReturnType<typeof getShopSettings>>; isAdmin: boolean }) {
@@ -27,8 +27,8 @@ export default function RootDocument({ settings, isAdmin }: { settings: Awaited<
         <MantineProvider theme={theme} forceColorScheme="light">
           <DirectionProvider initialDirection="rtl">
         {isAdmin ? (
-          <div className="admin-app-shell">
-            <header className="admin-app-header">
+          <div className={adminFrame['admin-app-shell']}>
+            <header className={adminFrame['admin-app-header']}>
               <div><strong>{settings.shop_name}</strong><span>لوحة المالك</span></div>
             </header>
             <Outlet />

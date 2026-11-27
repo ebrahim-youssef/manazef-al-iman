@@ -1,9 +1,10 @@
+import { Button, TextInput, UnstyledButton } from '@mantine/core'
 import { ClipboardText, SignOut, Spinner } from '@phosphor-icons/react'
 import { Link, Outlet } from '@tanstack/react-router'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { AdminClientContext } from './AdminClientContext'
-import './AdminLayout.css'
+import styles from './AdminArea.module.css'
 import './AdminPage.css'
 
 type AdminSession = Awaited<ReturnType<SupabaseClient['auth']['getSession']>>['data']['session']
@@ -71,25 +72,23 @@ export default function AdminLayout({ supabaseUrl, anonKey }: { supabaseUrl: str
   }
 
   if (session === undefined) {
-    return <main className="admin-shell" dir="rtl"><p className="admin-loading"><Spinner size={20} className="admin-spin" /> جارٍ التحقق من الجلسة…</p></main>
+    return <main className={styles['admin-shell']} dir="rtl"><p className={styles['admin-loading']}><Spinner size={20} className={styles['admin-spin']} /> جارٍ التحقق من الجلسة…</p></main>
   }
 
   if (!session) {
     return (
-      <main className="admin-shell" dir="rtl">
-        <section className="admin-login" aria-labelledby="admin-login-title">
-          <span className="admin-brand-mark" aria-hidden="true"><ClipboardText size={23} weight="duotone" /></span>
+      <main className={styles['admin-shell']} dir="rtl">
+        <section className={styles['admin-login']} aria-labelledby="admin-login-title">
+          <span className={styles['admin-brand-mark']} aria-hidden="true"><ClipboardText size={23} weight="duotone" /></span>
           <h1 id="admin-login-title">دخول المالك</h1>
           <p>سجّل الدخول لمتابعة طلبات المتجر.</p>
           <form onSubmit={submitLogin}>
-            <label htmlFor="admin-email">البريد الإلكتروني</label>
-            <input id="admin-email" type="email" autoComplete="username" required value={email} onChange={(event) => setEmail(event.target.value)} />
-            <label htmlFor="admin-password">كلمة المرور</label>
-            <input id="admin-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
-            {authError && <p className="admin-error" role="alert">{authError}</p>}
-            <button className="admin-primary-button" type="submit" disabled={busy || !client}>
+            <TextInput label="البريد الإلكتروني" id="admin-email" type="email" autoComplete="username" required withAsterisk={false} value={email} onChange={(event) => setEmail(event.target.value)} />
+            <TextInput label="كلمة المرور" id="admin-password" type="password" autoComplete="current-password" required withAsterisk={false} value={password} onChange={(event) => setPassword(event.target.value)} />
+            {authError && <p className={styles['admin-error']} role="alert">{authError}</p>}
+            <Button className={styles['admin-primary-button']} type="submit" disabled={busy || !client}>
               {busy ? 'جارٍ الدخول…' : 'دخول'}
-            </button>
+            </Button>
           </form>
         </section>
       </main>
@@ -98,22 +97,22 @@ export default function AdminLayout({ supabaseUrl, anonKey }: { supabaseUrl: str
 
   return (
     <AdminClientContext.Provider value={client}>
-      <div className="admin-layout" dir="rtl">
-        <header className="admin-layout-header">
-          <div className="admin-layout-bar">
-            <nav className="admin-tabs" aria-label="أقسام الإدارة">
+      <div className={styles['admin-layout']} dir="rtl">
+        <header className={styles['admin-layout-header']}>
+          <div className={styles['admin-layout-bar']}>
+            <nav className={styles['admin-tabs']} aria-label="أقسام الإدارة">
               {adminTabs.map(({ label, to }) => (
                 <Link key={to} to={to} activeOptions={{ exact: true }} activeProps={{ 'aria-current': 'page' }}>
                   {label}
                 </Link>
               ))}
             </nav>
-            <button className="admin-logout-button" type="button" onClick={logout} disabled={busy} aria-label="تسجيل الخروج">
+            <UnstyledButton className={styles['admin-logout-button']} type="button" onClick={logout} disabled={busy} aria-label="تسجيل الخروج">
               <SignOut size={19} /><span>تسجيل الخروج</span>
-            </button>
+            </UnstyledButton>
           </div>
         </header>
-        {authError && <p className="admin-layout-error" role="alert">{authError}</p>}
+        {authError && <p className={styles['admin-layout-error']} role="alert">{authError}</p>}
         <Outlet />
       </div>
     </AdminClientContext.Provider>

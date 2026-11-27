@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { TestProviders } from '../test-utils'
 import { AdminClientContext } from './AdminClientContext'
 import AdminPage from './AdminPage'
 
@@ -27,7 +28,7 @@ const { client, order, orderItem } = (() => {
 })()
 
 function renderOrders() {
-  return render(<AdminClientContext.Provider value={client as never}><AdminPage /></AdminClientContext.Provider>)
+  return render(<TestProviders><AdminClientContext.Provider value={client as never}><AdminPage /></AdminClientContext.Provider></TestProviders>)
 }
 
 afterEach(() => {
