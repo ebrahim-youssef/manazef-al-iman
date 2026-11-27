@@ -1,13 +1,13 @@
-.admin-settings-page {
+.page {
   max-width: 760px;
 }
 
-.admin-settings-form {
+.form {
   display: grid;
   gap: 16px;
 }
 
-.admin-settings-fields {
+.fields {
   display: grid;
   gap: 16px;
   min-width: 0;
@@ -16,7 +16,7 @@
   border: 0;
 }
 
-.admin-settings-section {
+.section {
   display: grid;
   gap: 15px;
   padding: 18px 16px;
@@ -25,25 +25,25 @@
   background: var(--white);
 }
 
-.admin-settings-section h2 {
+.section h2 {
   margin: 0;
   font-size: 1.1rem;
 }
 
-.admin-settings-section-heading {
+.sectionHeading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
-.admin-settings-section-heading p,
-.admin-settings-empty {
+.sectionHeading p,
+.empty {
   margin: 5px 0 0;
   color: var(--text-muted);
 }
 
-.admin-settings-field {
+.field {
   display: grid;
   gap: 7px;
   min-width: 0;
@@ -51,8 +51,8 @@
   font-weight: 600;
 }
 
-.admin-settings-field input,
-.admin-settings-field textarea {
+.field input,
+.field textarea {
   width: 100%;
   min-height: 48px;
   padding: 10px 12px;
@@ -65,28 +65,28 @@
   font-weight: 400;
 }
 
-.admin-settings-field textarea {
+.field textarea {
   resize: vertical;
 }
 
-.admin-settings-field input::placeholder,
-.admin-settings-field textarea::placeholder {
+.field input::placeholder,
+.field textarea::placeholder {
   color: var(--text-muted);
   opacity: 1;
 }
 
-.admin-settings-field input:focus,
-.admin-settings-field textarea:focus {
+.field input:focus,
+.field textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgb(42 112 72 / 16%);
+  box-shadow: 0 0 0 3px var(--mantine-color-iman-1);
 }
 
-.admin-settings-field input[aria-invalid='true'] {
-  border-color: #a5322a;
+.field input[aria-invalid='true'] {
+  border-color: var(--mantine-color-red-7);
 }
 
-.admin-settings-field-error {
-  color: #8e2720;
+.fieldError {
+  color: var(--mantine-color-red-8);
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -97,7 +97,7 @@
   gap: 12px;
 }
 
-.admin-settings-area-list {
+.areaList {
   display: grid;
   gap: 12px;
   margin: 0;
@@ -105,18 +105,18 @@
   list-style: none;
 }
 
-.admin-settings-area-list li {
+.areaList li {
   display: flex;
   align-items: end;
   gap: 10px;
 }
 
-.admin-settings-area-list .admin-settings-field {
+.areaList .field {
   flex: 1;
 }
 
-.admin-settings-secondary-button,
-.admin-settings-remove-button {
+.secondaryButton,
+.removeButton {
   min-height: 42px;
   padding: 0 12px;
   border: 1px solid var(--border);
@@ -127,33 +127,33 @@
   cursor: pointer;
 }
 
-.admin-settings-secondary-button {
+.secondaryButton {
   width: 100%;
   margin-top: 12px;
   color: var(--primary-dark);
 }
 
-.admin-settings-remove-button {
-  color: #8e2720;
+.removeButton {
+  color: var(--mantine-color-red-8);
 }
 
-.admin-settings-message {
+.errorMessage, .successMessage {
   margin: 0;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
 }
 
-.admin-settings-message.is-error {
-  color: #7f211a;
-  background: #fff0ed;
+.errorMessage {
+  color: var(--mantine-color-red-9);
+  background: var(--mantine-color-red-0);
 }
 
-.admin-settings-message.is-success {
+.successMessage {
   color: var(--primary-dark);
-  background: #eaf4ed;
+  background: var(--mantine-color-iman-0);
 }
 
-.admin-settings-save-button {
+.saveButton {
   min-height: 50px;
   padding: 10px 18px;
   color: var(--white);
@@ -165,24 +165,24 @@
   cursor: pointer;
 }
 
-.admin-settings-save-button:disabled {
+.saveButton:disabled {
   cursor: wait;
   opacity: 0.7;
 }
 
-.admin-settings-save-button:focus-visible,
-.admin-settings-secondary-button:focus-visible,
-.admin-settings-remove-button:focus-visible {
+.saveButton:focus-visible,
+.secondaryButton:focus-visible,
+.removeButton:focus-visible {
   outline: 3px solid var(--primary);
   outline-offset: 2px;
 }
 
 @media (max-width: 420px) {
-  .admin-settings-section {
+  .section {
     padding: 16px 13px;
   }
 
-  .admin-settings-section-heading {
+  .sectionHeading {
     align-items: stretch;
     flex-direction: column;
   }

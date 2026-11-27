@@ -1,9 +1,11 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useRouter } from '@tanstack/react-router'
+import { Button, Textarea, TextInput } from '@mantine/core'
 import { useAdminClient } from './AdminClientContext'
 import { validateShopSettings, type ShopSettingsForm } from './adminSettings'
 import { shopDefaults } from '../config/shopDefaults'
-import './AdminSettingsPage.css'
+import ShopLocationPicker from './ShopLocationPicker'
+import styles from './AdminSettingsPage.module.css'
 
 const emptySettings: ShopSettingsForm = {
   shop_name: '',
@@ -132,84 +134,83 @@ export default function AdminSettingsPage() {
 
   return (
     <main className="admin-shell" dir="rtl">
-      <div className="admin-page admin-settings-page">
+      <div className={`admin-page ${styles.page}`}>
         <header className="admin-header"><div className="admin-header-copy"><h1>إعدادات المتجر</h1><p>تظهر التغييرات على الموقع بعد الحفظ.</p></div></header>
         {isLoading && <p className="admin-loading" role="status">جارٍ تحميل الإعدادات…</p>}
         {loadError && <p className="admin-error" role="alert">{loadError}</p>}
         {!isLoading && !loadError && (
-          <form className="admin-settings-form" onSubmit={saveSettings} noValidate>
-            <fieldset className="admin-settings-fields" disabled={isSaving}>
-            <section className="admin-settings-section" aria-labelledby="settings-contact-title">
+          <form className={styles.form} onSubmit={saveSettings} noValidate>
+            <fieldset className={styles.fields} disabled={isSaving}>
+            <section className={styles.section} aria-labelledby="settings-contact-title">
               <h2 id="settings-contact-title">بيانات المتجر والتواصل</h2>
-              <label className="admin-settings-field" htmlFor="shop-name">اسم المتجر
-                <input id="shop-name" name="shop_name" value={settings.shop_name} placeholder={shopDefaults.shop_name} onChange={updateField} />
+              <label className={styles.field} htmlFor="shop-name">اسم المتجر
+                <TextInput id="shop-name" name="shop_name" value={settings.shop_name} placeholder={shopDefaults.shop_name} onChange={updateField} />
               </label>
-              <label className="admin-settings-field" htmlFor="whatsapp-number">رقم واتساب
-                <input id="whatsapp-number" name="whatsapp_number" type="tel" inputMode="tel" dir="ltr" value={settings.whatsapp_number} placeholder={shopDefaults.whatsapp_number} onChange={updateField} aria-invalid={Boolean(errors.whatsapp_number)} aria-describedby={errors.whatsapp_number ? 'whatsapp-number-error' : undefined} />
-                {errors.whatsapp_number && <span className="admin-settings-field-error" id="whatsapp-number-error">{errors.whatsapp_number}</span>}
+              <label className={styles.field} htmlFor="whatsapp-number">رقم واتساب
+                <TextInput id="whatsapp-number" name="whatsapp_number" type="tel" inputMode="tel" dir="ltr" value={settings.whatsapp_number} placeholder={shopDefaults.whatsapp_number} onChange={updateField} aria-invalid={Boolean(errors.whatsapp_number)} aria-describedby={errors.whatsapp_number ? 'whatsapp-number-error' : undefined} />
+                {errors.whatsapp_number && <span className={styles.fieldError} id="whatsapp-number-error">{errors.whatsapp_number}</span>}
               </label>
-              <label className="admin-settings-field" htmlFor="phone-number">رقم الهاتف
-                <input id="phone-number" name="phone_number" type="tel" inputMode="tel" dir="ltr" value={settings.phone_number} placeholder={shopDefaults.phone_number} onChange={updateField} />
+              <label className={styles.field} htmlFor="phone-number">رقم الهاتف
+                <TextInput id="phone-number" name="phone_number" type="tel" inputMode="tel" dir="ltr" value={settings.phone_number} placeholder={shopDefaults.phone_number} onChange={updateField} />
               </label>
-              <label className="admin-settings-field" htmlFor="shop-address">العنوان
-                <input id="shop-address" name="address" value={settings.address} placeholder={shopDefaults.address} onChange={updateField} />
+              <label className={styles.field} htmlFor="shop-address">العنوان
+                <TextInput id="shop-address" name="address" value={settings.address} placeholder={shopDefaults.address} onChange={updateField} />
               </label>
-              <div className="admin-settings-coordinate-row">
-                <label className="admin-settings-field" htmlFor="map-lat">خط العرض
-                  <input id="map-lat" name="map_lat" type="number" inputMode="decimal" step="any" dir="ltr" value={settings.map_lat} placeholder={String(shopDefaults.map_lat)} onChange={updateField} aria-invalid={Boolean(errors.map_lat)} aria-describedby={errors.map_lat ? 'map-lat-error' : undefined} />
-                </label>
-                <label className="admin-settings-field" htmlFor="map-lng">خط الطول
-                  <input id="map-lng" name="map_lng" type="number" inputMode="decimal" step="any" dir="ltr" value={settings.map_lng} placeholder={String(shopDefaults.map_lng)} onChange={updateField} aria-invalid={Boolean(errors.map_lng)} aria-describedby={errors.map_lng ? 'map-lng-error' : undefined} />
-                </label>
-              </div>
-              {errors.map_lat && <p className="admin-settings-field-error" id="map-lat-error">{errors.map_lat}</p>}
-              {errors.map_lng && <p className="admin-settings-field-error" id="map-lng-error">{errors.map_lng}</p>}
-              <label className="admin-settings-field" htmlFor="opening-hours">ساعات العمل
-                <textarea id="opening-hours" name="opening_hours_text" rows={3} value={settings.opening_hours_text} placeholder={shopDefaults.opening_hours_text} onChange={updateField} />
+              <ShopLocationPicker value={{ lat: settings.map_lat.trim() ? Number(settings.map_lat) : shopDefaults.map_lat ?? 30.0444, lng: settings.map_lng.trim() ? Number(settings.map_lng) : shopDefaults.map_lng ?? 31.2357 }} onChange={({ lat, lng }) => {
+                if (isSaving) return
+                setSettings((current) => ({ ...current, map_lat: String(lat), map_lng: String(lng) }))
+                setErrors((current) => ({ ...current, map_lat: undefined, map_lng: undefined }))
+                setSuccess('')
+                setSaveError('')
+              }} />
+              {errors.map_lat && <p className={styles.fieldError} id="map-lat-error">{errors.map_lat}</p>}
+              {errors.map_lng && <p className={styles.fieldError} id="map-lng-error">{errors.map_lng}</p>}
+              <label className={styles.field} htmlFor="opening-hours">ساعات العمل
+                <Textarea id="opening-hours" name="opening_hours_text" rows={3} value={settings.opening_hours_text} placeholder={shopDefaults.opening_hours_text} onChange={updateField} />
               </label>
             </section>
 
-            <section className="admin-settings-section" aria-labelledby="settings-social-title">
+            <section className={styles.section} aria-labelledby="settings-social-title">
               <h2 id="settings-social-title">روابط التواصل الاجتماعي</h2>
-              <label className="admin-settings-field" htmlFor="facebook-url">فيسبوك
-                <input id="facebook-url" name="facebook_url" type="url" dir="ltr" value={settings.facebook_url} placeholder={shopDefaults.facebook_url} onChange={updateField} aria-invalid={Boolean(errors.facebook_url)} aria-describedby={errors.facebook_url ? 'facebook-url-error' : undefined} />
-                {errors.facebook_url && <span className="admin-settings-field-error" id="facebook-url-error">{errors.facebook_url}</span>}
+              <label className={styles.field} htmlFor="facebook-url">فيسبوك
+                <TextInput id="facebook-url" name="facebook_url" type="url" dir="ltr" value={settings.facebook_url} placeholder={shopDefaults.facebook_url} onChange={updateField} aria-invalid={Boolean(errors.facebook_url)} aria-describedby={errors.facebook_url ? 'facebook-url-error' : undefined} />
+                {errors.facebook_url && <span className={styles.fieldError} id="facebook-url-error">{errors.facebook_url}</span>}
               </label>
-              <label className="admin-settings-field" htmlFor="instagram-url">إنستجرام
-                <input id="instagram-url" name="instagram_url" type="url" dir="ltr" value={settings.instagram_url} placeholder={shopDefaults.instagram_url} onChange={updateField} aria-invalid={Boolean(errors.instagram_url)} aria-describedby={errors.instagram_url ? 'instagram-url-error' : undefined} />
-                {errors.instagram_url && <span className="admin-settings-field-error" id="instagram-url-error">{errors.instagram_url}</span>}
+              <label className={styles.field} htmlFor="instagram-url">إنستجرام
+                <TextInput id="instagram-url" name="instagram_url" type="url" dir="ltr" value={settings.instagram_url} placeholder={shopDefaults.instagram_url} onChange={updateField} aria-invalid={Boolean(errors.instagram_url)} aria-describedby={errors.instagram_url ? 'instagram-url-error' : undefined} />
+                {errors.instagram_url && <span className={styles.fieldError} id="instagram-url-error">{errors.instagram_url}</span>}
               </label>
-              <label className="admin-settings-field" htmlFor="tiktok-url">تيك توك
-                <input id="tiktok-url" name="tiktok_url" type="url" dir="ltr" value={settings.tiktok_url} placeholder={shopDefaults.tiktok_url} onChange={updateField} aria-invalid={Boolean(errors.tiktok_url)} aria-describedby={errors.tiktok_url ? 'tiktok-url-error' : undefined} />
-                {errors.tiktok_url && <span className="admin-settings-field-error" id="tiktok-url-error">{errors.tiktok_url}</span>}
+              <label className={styles.field} htmlFor="tiktok-url">تيك توك
+                <TextInput id="tiktok-url" name="tiktok_url" type="url" dir="ltr" value={settings.tiktok_url} placeholder={shopDefaults.tiktok_url} onChange={updateField} aria-invalid={Boolean(errors.tiktok_url)} aria-describedby={errors.tiktok_url ? 'tiktok-url-error' : undefined} />
+                {errors.tiktok_url && <span className={styles.fieldError} id="tiktok-url-error">{errors.tiktok_url}</span>}
               </label>
             </section>
 
-            <section className="admin-settings-section" aria-labelledby="settings-areas-title">
-              <div className="admin-settings-section-heading">
+            <section className={styles.section} aria-labelledby="settings-areas-title">
+              <div className={styles.sectionHeading}>
                 <div><h2 id="settings-areas-title">مناطق التوصيل</h2><p>أضف اسم كل منطقة كما سيظهر للعميل.</p></div>
               </div>
-              {settings.delivery_areas.length === 0 && <p className="admin-settings-empty">لم تُضف مناطق توصيل بعد.</p>}
-              <ul className="admin-settings-area-list">
+              {settings.delivery_areas.length === 0 && <p className={styles.empty}>لم تُضف مناطق توصيل بعد.</p>}
+              <ul className={styles.areaList}>
                 {settings.delivery_areas.map((area, index) => (
                   <li key={index}>
-                    <label className="admin-settings-field" htmlFor={`delivery-area-${index}`}>المنطقة {index + 1}
-                      <input id={`delivery-area-${index}`} value={area} onChange={(event) => updateArea(index, event.currentTarget.value)} aria-invalid={Boolean(errors.delivery_areas) && isAreaInvalid(settings.delivery_areas, index)} aria-describedby={errors.delivery_areas ? 'delivery-areas-error' : undefined} />
+                    <label className={styles.field} htmlFor={`delivery-area-${index}`}>المنطقة {index + 1}
+                      <TextInput id={`delivery-area-${index}`} value={area} onChange={(event) => updateArea(index, event.currentTarget.value)} aria-invalid={Boolean(errors.delivery_areas) && isAreaInvalid(settings.delivery_areas, index)} aria-describedby={errors.delivery_areas ? 'delivery-areas-error' : undefined} />
                     </label>
-                    <button className="admin-settings-remove-button" type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: current.delivery_areas.filter((_, areaIndex) => areaIndex !== index) }))}>حذف</button>
+                    <Button className={styles.removeButton} type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: current.delivery_areas.filter((_, areaIndex) => areaIndex !== index) }))}>حذف</Button>
                   </li>
                 ))}
               </ul>
-              {errors.delivery_areas && <p className="admin-settings-field-error" id="delivery-areas-error">{errors.delivery_areas}</p>}
-              <button className="admin-settings-secondary-button" type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: [...current.delivery_areas, ''] }))}>إضافة منطقة</button>
+              {errors.delivery_areas && <p className={styles.fieldError} id="delivery-areas-error">{errors.delivery_areas}</p>}
+              <Button className={styles.secondaryButton} type="button" onClick={() => setSettings((current) => ({ ...current, delivery_areas: [...current.delivery_areas, ''] }))}>إضافة منطقة</Button>
             </section>
 
             </fieldset>
-            {saveError && <p className="admin-settings-message is-error" role="alert">{saveError}</p>}
-            {success && <p className="admin-settings-message is-success" role="status">{success}</p>}
-            <button className="admin-settings-save-button" type="submit" disabled={isSaving}>
+            {saveError && <p className={styles.errorMessage} role="alert">{saveError}</p>}
+            {success && <p className={styles.successMessage} role="status">{success}</p>}
+            <Button className={styles.saveButton} type="submit" disabled={isSaving}>
               {isSaving ? 'جارٍ الحفظ…' : 'حفظ الإعدادات'}
-            </button>
+            </Button>
           </form>
         )}
       </div>

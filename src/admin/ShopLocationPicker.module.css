@@ -1,0 +1,6 @@
+.picker { display: grid; gap: 10px; min-width: 0; }
+.search { display: flex; align-items: end; gap: 8px; }
+.search > div { flex: 1; min-width: 0; }
+.map { height: 320px; width: 100%; z-index: 0; }
+.results { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.results button { height: auto; min-height: 40px; white-space: normal; text-align: right; }
