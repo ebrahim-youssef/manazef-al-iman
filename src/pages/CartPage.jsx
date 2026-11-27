@@ -286,7 +286,7 @@ export default function CartPage() {
                       {line.available ? <Link to={`/product/${item.id}`} className={styles['cart-item-name']}>{line.name}</Link> : <span className={styles['cart-item-name']}>{line.name}</span>}
                       {line.available ? <p className={styles['cart-item-unit']}>{formatEGP(line.price)}</p> : <p className={styles['cart-item-unavailable']}>هذا المنتج غير متوفر ولن يضاف إلى الطلب.</p>}
                       <div className={styles['cart-item-controls']}>
-                        {line.available && <div className={'qty-control'}>
+                        {line.available && <div className={styles['qty-control']}>
                           <Button type="button" unstyled onClick={() => updateQty(item.id, item.quantity - 1)} aria-label="تقليل الكمية"><Minus weight="bold" /></Button>
                           <input type="number" min="1" max={MAX_ITEM_QUANTITY} step="1" value={item.quantity} onChange={(event) => {
                             const quantity = Number(event.target.value);
