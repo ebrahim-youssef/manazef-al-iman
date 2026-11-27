@@ -234,9 +234,43 @@ describe('cart', () => {
     expect(screen.getByLabelText('الاسم')).toBeInTheDocument()
     expect(screen.getByLabelText(/رقم الموبايل/)).toBeInTheDocument()
     expect(screen.getByLabelText(/رقم الموبايل/)).toHaveAttribute('dir', 'ltr')
-    expect(screen.getByLabelText('المنطقة')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'المنطقة' })).toBeInTheDocument()
     expect(screen.getByLabelText('العنوان')).toBeInTheDocument()
     expect(screen.getByLabelText('ملاحظات اختيارية')).toBeInTheDocument()
+  })
+
+  it('shows the Arabic phone validation message on submit', async () => {
+    localStorage.setItem('iman-cart', JSON.stringify([{ id: 'cos-1', quantity: 1 }]))
+    localStorage.setItem('iman-checkout', JSON.stringify({
+      name: 'عميل', phone: '123', area: 'القاهرة', address: 'شارع النصر', notes: '',
+    }))
+    window.turnstile = { render: vi.fn(() => 'widget-1'), reset: vi.fn(), execute: vi.fn(), remove: vi.fn() }
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/cart'] }) })
+    render(<RouterProvider router={router} />)
+
+    const submit = await screen.findByRole('button', { name: 'تأكيد الطلب عبر واتساب' })
+    await waitFor(() => expect(submit).toBeEnabled())
+    fireEvent.click(submit)
+    expect(await screen.findByText('أدخل رقم موبايل مصري صحيح يبدأ بـ 010 أو 011 أو 012 أو 015.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/رقم الموبايل/)).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('requires a delivery area on submit', async () => {
+    localStorage.setItem('iman-cart', JSON.stringify([{ id: 'cos-1', quantity: 1 }]))
+    localStorage.setItem('iman-checkout', JSON.stringify({
+      name: 'عميل', phone: '01012345678', area: '', address: 'شارع النصر', notes: '',
+    }))
+    window.turnstile = { render: vi.fn(() => 'widget-1'), reset: vi.fn(), execute: vi.fn(), remove: vi.fn() }
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/cart'] }) })
+    render(<RouterProvider router={router} />)
+
+    const submit = await screen.findByRole('button', { name: 'تأكيد الطلب عبر واتساب' })
+    await waitFor(() => expect(submit).toBeEnabled())
+    fireEvent.click(submit)
+    expect(await screen.findByText('اختر المنطقة.')).toBeInTheDocument()
+    expect(createOrder).not.toHaveBeenCalled()
   })
 
   it('keeps one Turnstile widget across quantity changes and removes it when the cart empties', async () => {
