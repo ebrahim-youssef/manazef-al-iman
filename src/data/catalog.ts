@@ -137,6 +137,6 @@ export const getSearchIndex = createServerFn({ method: 'GET' })
     return {
       unavailable: false as const,
       categories: catalog.categories.map(({ id, slug, name }) => ({ id, slug, name })),
-      products: catalog.products.map(({ id, name, brand, category, image, price }) => ({ id, name, brand, category, image, price })),
+      products: catalog.products.map(({ id, name, brand, brandArabicName, category, image, price }) => ({ id, name, brand, brandArabic: brandArabicName, category, image, price })),
     }
   })
