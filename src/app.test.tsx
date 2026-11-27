@@ -221,7 +221,7 @@ describe('cart', () => {
     expect(screen.queryByText('تعذّر إرسال طلبك الآن. حاول مرة أخرى بعد قليل، أو أرسل طلبك مباشرة عبر واتساب.')).not.toBeInTheDocument()
 
     fireEvent.click(submit)
-    expect(turnstile.reset).toHaveBeenCalledWith('widget-1')
+    await waitFor(() => expect(turnstile.reset).toHaveBeenCalledWith('widget-1'))
     expect(turnstile.execute).toHaveBeenCalledTimes(1)
     expect(turnstile.reset.mock.invocationCallOrder[0]!).toBeLessThan(turnstile.execute.mock.invocationCallOrder[0]!)
     await waitFor(() => expect(screen.getByText('تعذّر إرسال طلبك الآن. حاول مرة أخرى بعد قليل، أو أرسل طلبك مباشرة عبر واتساب.')).toBeInTheDocument())

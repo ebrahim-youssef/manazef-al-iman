@@ -6,10 +6,23 @@ import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
 import { buildOrderMessage, isEgyptianMobile, normalizeEgyptianMobile } from '../checkout/whatsappOrder';
 import { Route as RootRoute } from '../routes/__root';
+import { MAX_ITEM_QUANTITY } from '../checkout/cartLimits';
 import './CartPage.css';
 
 const CHECKOUT_STORAGE_KEY = 'iman-checkout';
-const EMPTY_FORM = { name: '', phone: '', area: '', address: '', notes: '' };
+const CHECKOUT_ID_KEY = 'iman-checkout-id';
+// A retry of the same cart reuses its id so a lost response cannot create a second order;
+// an edited cart gets a new id so it never returns the earlier order's items.
+function getCheckoutId(items) {
+  const cartKey = JSON.stringify(items.map(({ id, quantity }) => ({ id, quantity })));
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(CHECKOUT_ID_KEY) ?? 'null'); } catch { saved = null; }
+  const id = saved?.cartKey === cartKey && typeof saved.id === 'string' ? saved.id : crypto.randomUUID();
+  localStorage.setItem(CHECKOUT_ID_KEY, JSON.stringify({ id, cartKey }));
+  return id;
+}
+
+const EMPTY_FORM ={ name: '', phone: '', area: '', address: '', notes: '' };
 const CHECKOUT_FAILURE_MESSAGE = 'تعذّر إرسال طلبك الآن. حاول مرة أخرى بعد قليل، أو أرسل طلبك مباشرة عبر واتساب.';
 
 function loadCheckoutForm() {
@@ -29,39 +42,54 @@ export default function CartPage() {
   const [loadedCartKey, setLoadedCartKey] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formLoaded, setFormLoaded] = useState(false);
+  const [hasPendingCheckout, setHasPendingCheckout] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [refreshError, setRefreshError] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [turnstileFailed, setTurnstileFailed] = useState(false);
   const [turnstileLoadFailed, setTurnstileLoadFailed] = useState(false);
   const turnstileContainer = useRef(null);
   const turnstileId = useRef(null);
   const pendingToken = useRef(null);
+  const refreshRequest = useRef(0);
 
   useEffect(() => {
     if (!hasLoaded) return;
     if (items.length === 0) return undefined;
     let isCurrent = true;
+    const request = ++refreshRequest.current;
     const cartKey = JSON.stringify(items);
     getCurrentCartLines({ data: items }).then((currentLines) => {
-      if (isCurrent) {
+      if (isCurrent && request === refreshRequest.current) {
         setLines(currentLines);
         setLoadedCartKey(cartKey);
+        setRefreshError(false);
       }
     }).catch(() => {
-      if (isCurrent) {
-        setError('تعذر تحديث أسعار المنتجات. أعد المحاولة بعد قليل.');
-        setLines([]);
+      if (isCurrent && request === refreshRequest.current) {
+        setRefreshError(true);
         setLoadedCartKey(cartKey);
       }
     });
     return () => { isCurrent = false; };
-  }, [hasLoaded, items]);
+  }, [hasLoaded, items, refreshVersion]);
+
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') setRefreshVersion((value) => value + 1); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, []);
 
   // Restore browser-only checkout values after hydration to keep server markup stable.
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
     setForm(loadCheckoutForm());
+    // oxlint-disable-next-line react/set-state-in-effect
+    setHasPendingCheckout(Boolean(localStorage.getItem(CHECKOUT_ID_KEY)));
     // oxlint-disable-next-line react/set-state-in-effect
     setFormLoaded(true);
   }, []);
@@ -157,6 +185,27 @@ export default function CartPage() {
     }
     setIsSubmitting(true);
     try {
+      let currentLines;
+      try {
+        refreshRequest.current += 1;
+        currentLines = await getCurrentCartLines({ data: items });
+      } catch {
+        setRefreshError(true);
+        setIsSubmitting(false);
+        return;
+      }
+      setRefreshError(false);
+      setLines(currentLines);
+      setLoadedCartKey(JSON.stringify(items));
+      if (currentLines.length !== lines.length || currentLines.some((line) => {
+        const previous = lines.find((item) => item.id === line.id);
+        return !previous || previous.price !== line.price || previous.available !== line.available;
+      })) {
+        setNotice('تغيرت أسعار بعض المنتجات أو حالة توفرها. راجع الإجمالي ثم أكد الطلب مجددًا.');
+        setIsSubmitting(false);
+        return;
+      }
+      setNotice('');
       if (!turnstileReady || turnstileLoadFailed || turnstileId.current == null || !window.turnstile) {
         throw new Error('Turnstile is not ready');
       }
@@ -173,9 +222,12 @@ export default function CartPage() {
         window.turnstile.reset(turnstileId.current);
         window.turnstile.execute(turnstileId.current);
       });
+      const checkoutId = getCheckoutId(items);
+      setHasPendingCheckout(true);
       const order = await createOrder({ data: {
         items: items.map(({ id, quantity }) => ({ id, quantity })),
         turnstileToken: token,
+        checkoutId,
       } });
       const orderItems = order.items.map((line) => ({
         name: line.name,
@@ -189,6 +241,8 @@ export default function CartPage() {
         total: order.total,
       });
       clearCart();
+      localStorage.removeItem(CHECKOUT_ID_KEY);
+      setHasPendingCheckout(false);
       window.location.assign(`${fallbackUrl}?text=${encodeURIComponent(message)}`);
     } catch {
       setError(CHECKOUT_FAILURE_MESSAGE);
@@ -220,8 +274,7 @@ export default function CartPage() {
                 <button type="button" className="cart-clear" onClick={clearCart}>تفريغ السلة</button>
               </div>
               {items.map((item) => {
-                const line = lineById.get(item.id);
-                if (!line) return null;
+                const line = lineById.get(item.id) ?? { id: item.id, name: 'منتج غير متاح', available: false };
                 return (
                   <div className={`cart-item${line.available ? '' : ' unavailable'}`} key={item.id}>
                     {line.available ? (
@@ -233,11 +286,11 @@ export default function CartPage() {
                       <div className="cart-item-controls">
                         {line.available && <div className="qty-control">
                           <button type="button" onClick={() => updateQty(item.id, item.quantity - 1)} aria-label="تقليل الكمية"><Minus weight="bold" /></button>
-                          <input type="number" min="1" step="1" value={item.quantity} onChange={(event) => {
+                          <input type="number" min="1" max={MAX_ITEM_QUANTITY} step="1" value={item.quantity} onChange={(event) => {
                             const quantity = Number(event.target.value);
                             updateQty(item.id, Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1);
                           }} aria-label={`كمية ${line.name}`} />
-                          <button type="button" onClick={() => updateQty(item.id, item.quantity + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></button>
+                          <button type="button" disabled={item.quantity >= MAX_ITEM_QUANTITY} onClick={() => updateQty(item.id, item.quantity + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></button>
                         </div>}
                         <button type="button" className="cart-remove" onClick={() => removeItem(item.id)}><Trash aria-hidden="true" />حذف</button>
                       </div>
@@ -258,10 +311,12 @@ export default function CartPage() {
                   <label className="checkout-address" htmlFor="checkout-notes">ملاحظات اختيارية<textarea id="checkout-notes" name="notes" rows="3" value={form.notes} onChange={updateField} /></label>
                 </div>
                 <div className="turnstile-widget" ref={turnstileContainer} />
+                {refreshError && <div className="checkout-error" role="alert"><p>تعذر تحديث أسعار المنتجات. حاول مجددًا.</p><button type="button" onClick={() => setRefreshVersion((value) => value + 1)}>إعادة المحاولة</button></div>}
+                {notice && <p className="checkout-hint" role="status">{notice}</p>}
                 {!settings.delivery_areas?.length && <p className="checkout-hint">لم تُضف مناطق التوصيل بعد. <a href={fallbackUrl}>تواصل معنا عبر واتساب</a> لتحديد منطقتك.</p>}
                 {error && <div className="checkout-error" role="alert"><p>{error}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
                 {turnstileLoadFailed && !error && <div className="checkout-error" role="alert"><p>{CHECKOUT_FAILURE_MESSAGE}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
-                <button type="submit" className="btn btn-primary whatsapp-btn" disabled={isSubmitting || !formLoaded || !linesLoaded || !availableCount || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
+                <button type="submit" className="btn btn-primary whatsapp-btn" disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
                   <WhatsappLogo weight="bold" aria-hidden="true" />
                   {isSubmitting ? 'جارٍ تسجيل الطلب…' : 'تأكيد الطلب عبر واتساب'}
                 </button>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Check } from '@phosphor-icons/react';
 import { useCart } from '../context/useCart';
+import { MAX_CART_ITEMS } from '../checkout/cartLimits';
 import { formatEGP } from '../utils/format';
 import { getDiscountPercent } from '../utils/discount';
 import './ProductCard.css';
@@ -9,7 +10,8 @@ import './ProductCard.css';
 const ADDED_FEEDBACK_MS = 1500;
 
 export default function ProductCard({ product }) {
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
+  const [limitReached, setLimitReached] = useState(false);
   const discount = getDiscountPercent(product);
   const [isJustAdded, setIsJustAdded] = useState(false);
 
@@ -20,6 +22,8 @@ export default function ProductCard({ product }) {
   }, [isJustAdded]);
 
   const handleAdd = () => {
+    if (items.length >= MAX_CART_ITEMS && !items.some((item) => item.id === product.id)) { setLimitReached(true); return; }
+    setLimitReached(false);
     addItem(product, 1);
     setIsJustAdded(true);
   };
@@ -60,6 +64,7 @@ export default function ProductCard({ product }) {
           {isJustAdded && <Check weight="bold" aria-hidden="true" />}
           {buttonLabel}
         </button>
+        {limitReached && <p role="status">احذف منتجًا من السلة لإضافة منتج آخر.</p>}
       </div>
     </article>
   );

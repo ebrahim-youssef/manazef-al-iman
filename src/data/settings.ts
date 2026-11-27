@@ -28,7 +28,7 @@ async function readNavigationCategories() {
     const client = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
       global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) }) },
     })
-    const { data, error } = await client.from('categories').select('id, slug, name').order('sort_order')
+    const { data, error } = await client.from('categories').select('id, slug, name').order('sort_order').order('id')
     if (error) throw error
     return data
   } catch (reason) {

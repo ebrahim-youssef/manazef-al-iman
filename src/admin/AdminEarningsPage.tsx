@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAdminClient } from './AdminClientContext'
-import { summarizeEarnings, type EarningsSummary } from './adminEarnings'
+import type { EarningsSummary } from './adminEarnings'
 import { formatOrderTotal } from './adminOrders'
-
-type EarningsRow = {
-  created_at: string
-  total_egp: number
-  status: 'new' | 'fulfilled' | 'cancelled'
-}
 
 const emptySummary: EarningsSummary = {
   today: { totalEgp: 0, orderCount: 0 },
@@ -29,11 +23,7 @@ export default function AdminEarningsPage() {
 
   useEffect(() => {
     let isActive = true
-    const earliestCreatedAt = new Date(Date.now() - 33 * 24 * 60 * 60 * 1000).toISOString()
-    void client.from('orders')
-      .select('created_at, total_egp, status')
-      .eq('status', 'fulfilled')
-      .gte('created_at', earliestCreatedAt)
+    void client.rpc('earnings_summary')
       .then(({ data, error: queryError }) => {
         if (!isActive) return
         setIsLoading(false)
@@ -42,7 +32,7 @@ export default function AdminEarningsPage() {
           return
         }
         setError('')
-        setSummary(summarizeEarnings((data ?? []) as EarningsRow[], new Date()))
+        setSummary(data as EarningsSummary)
       })
     return () => { isActive = false }
   }, [client])

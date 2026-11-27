@@ -88,7 +88,9 @@ export const createOrder = createServerFn({ method: 'POST' })
   .validator((data: unknown) => data)
   .handler(async ({ data }) => {
     if (typeof data !== 'object' || data === null || !('items' in data)
-      || !('turnstileToken' in data) || typeof data.turnstileToken !== 'string') {
+      || !('turnstileToken' in data) || typeof data.turnstileToken !== 'string'
+      || !('checkoutId' in data) || typeof data.checkoutId !== 'string'
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.checkoutId)) {
       throw new Error('Order request must include items and a Turnstile token')
     }
     const cart = validateOrderItems(data.items)
@@ -103,6 +105,14 @@ export const createOrder = createServerFn({ method: 'POST' })
       auth: { autoRefreshToken: false, persistSession: false },
       global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) }) },
     })
+    const { data: previousOrder, error: lookupError } = await serviceClient.from('orders')
+      .select('id').eq('checkout_id', data.checkoutId).maybeSingle()
+    if (lookupError) throw new Error(`Checkout could not be checked: ${lookupError.message}`)
+    if (previousOrder) {
+      const { data: result, error } = await serviceClient.rpc('create_order', { items: [], checkout_id: data.checkoutId })
+      if (error) throw new Error(`Order could not be loaded: ${error.message}`)
+      return result as { code: string; items: PricedOrderLine[]; total: number }
+    }
     let savedOrder: { code: string; items: PricedOrderLine[]; total: number } | undefined
     const order = await createOrderCore(
       cart,
@@ -114,7 +124,7 @@ export const createOrder = createServerFn({ method: 'POST' })
         return (products as ProductRow[]).map(toOrderProduct)
       },
       async (items) => {
-        const { data: result, error } = await serviceClient.rpc('create_order', { items })
+        const { data: result, error } = await serviceClient.rpc('create_order', { items, checkout_id: data.checkoutId })
         if (error) throw new Error(`Order could not be saved: ${error.message}`)
         const resultObject = result as { code: string; items: PricedOrderLine[]; total: number }
         savedOrder = resultObject

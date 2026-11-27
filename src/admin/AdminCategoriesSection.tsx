@@ -36,11 +36,8 @@ export default function AdminCategories({ categories, reload }: { categories: Ca
     try {
       const reordered = [...categories]
       ;[reordered[index], reordered[other]] = [reordered[other]!, reordered[index]!]
-      for (const [order, category] of reordered.entries()) {
-        if (category.sort_order === order) continue
-        const { error: updateError } = await client.from('categories').update({ sort_order: order }).eq('id', category.id).select('id').single()
-        if (updateError) throw updateError
-      }
+      const { error: updateError } = await client.rpc('reorder_categories', { category_ids: reordered.map((category) => category.id) })
+      if (updateError) throw updateError
       await refresh()
     } catch {
       await reload()
@@ -78,7 +75,7 @@ export default function AdminCategories({ categories, reload }: { categories: Ca
           return uploaded
         },
         write: async (paths) => {
-          const result = await client.from('categories').update({ name: editing.name.trim(), image_path: paths[0] ?? editing.image_path }).eq('id', editing.id).select('id').single()
+          const result = await client.from('categories').update({ name: editing.name.trim(), ...(paths[0] ? { image_path: paths[0] } : {}) }).eq('id', editing.id).select('id').single()
           return { error: result.error }
         },
         removeNew: async (paths) => { if (paths.length) cleanupFailed = Boolean((await client.storage.from('catalog').remove(paths)).error) },

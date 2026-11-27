@@ -1,4 +1,5 @@
 import { calculatePrice, type ProductPricing } from '../pricing/price'
+import { MAX_CART_ITEMS, MAX_ITEM_QUANTITY } from './cartLimits'
 
 export type CartOrderInput = { id: string; quantity: number }
 export type OrderProduct = ProductPricing & {
@@ -26,10 +27,10 @@ export function validateOrderItems(input: unknown): CartOrderInput[] {
 
   const cart = input as CartOrderInput[]
   const distinctIds = new Set(cart.map((item) => item.id))
-  if (distinctIds.size > 50) throw new Error(`Order has ${distinctIds.size} distinct items; maximum is 50`)
-  if (input.length > 50) throw new Error(`Order has ${input.length} item entries; maximum is 50`)
+  if (distinctIds.size > MAX_CART_ITEMS) throw new Error(`Order has ${distinctIds.size} distinct items; maximum is ${MAX_CART_ITEMS}`)
+  if (input.length > MAX_CART_ITEMS) throw new Error(`Order has ${input.length} item entries; maximum is ${MAX_CART_ITEMS}`)
   for (const item of cart) {
-    if (item.quantity < 1 || item.quantity > 99) {
+    if (item.quantity < 1 || item.quantity > MAX_ITEM_QUANTITY) {
       throw new Error(`${item.id} has quantity ${item.quantity}; expected an integer from 1 to 99`)
     }
   }

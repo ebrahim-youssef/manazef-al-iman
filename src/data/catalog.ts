@@ -74,7 +74,7 @@ async function readCatalog(): Promise<CatalogData> {
       global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) }) },
     })
     const [{ data: categories, error: categoryError }, { data: products, error: productError }, { data: settings, error: settingsError }] = await Promise.all([
-      client.from('categories').select('*').order('sort_order').then((result) => {
+      client.from('categories').select('*').order('sort_order').order('id').then((result) => {
         if (result.error) logCatalogFailure('categories', result.error)
         return result
       }, (error) => {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useReducer } from 'react';
 import { CartContext } from './cart-context';
+import { MAX_CART_ITEMS, MAX_ITEM_QUANTITY } from '../checkout/cartLimits';
 const STORAGE_KEY = 'iman-cart';
 
 function loadCart() {
@@ -10,7 +11,7 @@ function loadCart() {
     if (!Array.isArray(parsed)) return [];
     return parsed.filter((item) => item && typeof item.id === 'string' && item.id.length > 0
       && Number.isInteger(item.quantity) && item.quantity > 0)
-      .map(({ id, quantity }) => ({ id, quantity }));
+      .slice(0, MAX_CART_ITEMS).map(({ id, quantity }) => ({ id, quantity: Math.min(quantity, MAX_ITEM_QUANTITY) }));
   } catch {
     return [];
   }
@@ -27,15 +28,16 @@ function cartReducer(state, action) {
         return {
           ...state,
           items: state.items.map((i) =>
-            i.id === product.id ? { ...i, quantity: i.quantity + quantity } : i,
+            i.id === product.id ? { ...i, quantity: Math.min(MAX_ITEM_QUANTITY, i.quantity + quantity) } : i,
           ),
         };
       }
+      if (state.items.length >= MAX_CART_ITEMS) return state;
       return {
         ...state,
         items: [
           ...state.items,
-          { id: product.id, quantity: Math.max(1, quantity) },
+          { id: product.id, quantity: Math.min(MAX_ITEM_QUANTITY, Math.max(1, quantity)) },
         ],
       };
     }
@@ -44,7 +46,7 @@ function cartReducer(state, action) {
     case 'UPDATE_QTY': {
       const { id, quantity } = action.payload;
       if (quantity <= 0) return { ...state, items: state.items.filter((i) => i.id !== id) };
-      return { ...state, items: state.items.map((i) => (i.id === id ? { ...i, quantity } : i)) };
+      return { ...state, items: state.items.map((i) => (i.id === id ? { ...i, quantity: Math.min(MAX_ITEM_QUANTITY, quantity) } : i)) };
     }
     case 'CLEAR':
       return { ...state, items: [] };

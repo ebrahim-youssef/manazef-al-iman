@@ -41,7 +41,7 @@ export default function AdminProductsPage() {
   const loadProducts = useCallback(async () => {
     const [{ data, error: productError }, { data: categoryData, error: categoryError }] = await Promise.all([
       client.from('products').select('*').order('created_at', { ascending: false }),
-      client.from('categories').select('id, name, image_path, sort_order').order('sort_order'),
+      client.from('categories').select('id, name, image_path, sort_order').order('sort_order').order('id'),
     ])
     setLoading(false)
     if (productError || categoryError) {
@@ -120,8 +120,8 @@ export default function AdminProductsPage() {
           return uploaded
         },
         write: async (uploadedPaths) => {
-          const imagePath = uploadedPaths.length ? uploadedPaths[0] : oldImagePath
-          const value = { ...editing, id: productId, image_path: imagePath, sale_value: editing.sale_type === 'none' ? null : editing.sale_value, friday_value: editing.friday_type === 'none' ? null : editing.friday_value, sale_starts_at: saleStartsAt, sale_ends_at: saleEndsAt, updated_at: new Date().toISOString() }
+          const { image_path: imagePath, ...fields } = editing
+          const value = { ...fields, id: productId, ...(!editing.id || uploadedPaths[0] ? { image_path: uploadedPaths[0] ?? imagePath } : {}), sale_value: editing.sale_type === 'none' ? null : editing.sale_value, friday_value: editing.friday_type === 'none' ? null : editing.friday_value, sale_starts_at: saleStartsAt, sale_ends_at: saleEndsAt, updated_at: new Date().toISOString() }
           const result = editing.id
             ? await client.from('products').update(value).eq('id', productId)
             : await client.from('products').insert(value)

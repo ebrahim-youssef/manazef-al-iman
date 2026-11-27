@@ -3,19 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AdminClientContext } from './AdminClientContext'
 import AdminEarningsPage from './AdminEarningsPage'
 
-const { client, query } = vi.hoisted(() => {
-  const query = {
-    select: vi.fn(),
-    eq: vi.fn(),
-    gte: vi.fn().mockResolvedValue({
-      data: [{ created_at: new Date().toISOString(), total_egp: 120, status: 'fulfilled' }],
-      error: null,
-    }),
-  }
-  query.select.mockReturnValue(query)
-  query.eq.mockReturnValue(query)
-  return { client: { from: vi.fn(() => query) }, query }
-})
+const { client } = vi.hoisted(() => ({
+  client: { rpc: vi.fn().mockResolvedValue({ data: {
+    today: { totalEgp: 120, orderCount: 1 },
+    week: { totalEgp: 120, orderCount: 1 },
+    month: { totalEgp: 120, orderCount: 1 },
+  }, error: null }) },
+}))
 
 afterEach(() => {
   cleanup()
@@ -28,9 +22,7 @@ describe('admin earnings page', () => {
 
     expect(await screen.findByRole('heading', { name: 'الأرباح' })).toBeInTheDocument()
     expect(await screen.findByText('لا تشمل مصاريف التوصيل.')).toBeInTheDocument()
-    expect(client.from).toHaveBeenCalledWith('orders')
-    expect(query.eq).toHaveBeenCalledWith('status', 'fulfilled')
-    expect(query.gte).toHaveBeenCalledWith('created_at', expect.any(String))
+    expect(client.rpc).toHaveBeenCalledWith('earnings_summary')
     expect(screen.getByRole('heading', { name: 'اليوم' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'هذا الأسبوع' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'هذا الشهر' })).toBeInTheDocument()

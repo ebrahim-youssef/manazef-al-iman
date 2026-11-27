@@ -3,6 +3,7 @@ import { Link, useParams } from '@tanstack/react-router';
 import { Route } from '../routes/product.$id';
 import { CatalogUnavailable } from '../components/CatalogUnavailable';
 import { useCart } from '../context/useCart';
+import { MAX_CART_ITEMS, MAX_ITEM_QUANTITY } from '../checkout/cartLimits';
 import { formatEGP } from '../utils/format';
 import { getDiscountPercent } from '../utils/discount';
 import { Minus, Package, Plus, ShoppingCart } from '@phosphor-icons/react';
@@ -18,7 +19,8 @@ export default function ProductDetails() {
   const categories = catalog.unavailable ? EMPTY_CATEGORIES : catalog.categories;
   const { id } = useParams({ from: '/product/$id' });
   const product = products.find((p) => p.id === id);
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
+  const [limitReached, setLimitReached] = useState(false);
   const [qty, setQty] = useState(1);
 
   const related = useMemo(() => {
@@ -45,6 +47,8 @@ export default function ProductDetails() {
 
   const handleAdd = () => {
     if (!product.available) return;
+    if (items.length >= MAX_CART_ITEMS && !items.some((item) => item.id === product.id)) { setLimitReached(true); return; }
+    setLimitReached(false);
     addItem(product, qty);
   };
 
@@ -86,12 +90,14 @@ export default function ProductDetails() {
                   <input
                     type="number"
                     min="1"
+                    max={MAX_ITEM_QUANTITY}
                     value={qty}
-                    onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
+                    onChange={(e) => setQty(Math.min(MAX_ITEM_QUANTITY, Math.max(1, Math.floor(Number(e.target.value)) || 1)))}
                     aria-label="الكمية"
                   />
-                  <button type="button" onClick={() => setQty((q) => q + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></button>
+                  <button type="button" disabled={qty >= MAX_ITEM_QUANTITY} onClick={() => setQty((q) => q + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></button>
                 </div>
+                {limitReached && <p role="status">احذف منتجًا من السلة لإضافة منتج آخر.</p>}
                 <button type="button" className="btn btn-primary detail-add" onClick={handleAdd} disabled={!product.available}>
                   {product.available && <ShoppingCart weight="bold" aria-hidden="true" />}
                   {product.available ? 'أضف إلى السلة' : 'غير متوفر'}

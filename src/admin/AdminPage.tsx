@@ -1,6 +1,6 @@
 import { ArrowClockwise, ArrowRight, ArrowUpLeft, ClipboardText, MagnifyingGlass, Spinner } from '@phosphor-icons/react'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAdminClient } from './AdminClientContext'
 import {
   filterOrders,
@@ -27,6 +27,7 @@ export default function AdminPage() {
   const [statusFilter, setStatusFilter] = useState<OrderFilter>('all')
   const [search, setSearch] = useState('')
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null)
+  const selectedOrderId = useRef<string | null>(null)
   const [items, setItems] = useState<AdminOrderItem[] | null>(null)
   const [detailError, setDetailError] = useState('')
   const [changingStatus, setChangingStatus] = useState(false)
@@ -61,6 +62,7 @@ export default function AdminPage() {
 
   async function openOrder(order: AdminOrder) {
     if (!client) return
+    selectedOrderId.current = order.id
     setSelectedOrder(order)
     setItems(null)
     setDetailError('')
@@ -68,6 +70,7 @@ export default function AdminPage() {
       .select('id, product_name, unit, unit_price_egp, quantity, line_total_egp')
       .eq('order_id', order.id)
       .order('product_name', { ascending: true })
+    if (selectedOrderId.current !== order.id) return
     if (error) {
       setDetailError('تعذر تحميل تفاصيل الطلب. حاول فتحه مجددًا.')
       return
@@ -77,16 +80,18 @@ export default function AdminPage() {
 
   async function changeStatus(status: OrderStatus) {
     if (!client || !selectedOrder || changingStatus) return
+    const orderId = selectedOrder.id
     setChangingStatus(true)
     setDetailError('')
     const { error } = await client.rpc('set_order_status', { code: selectedOrder.code, next_status: status })
     setChangingStatus(false)
+    if (selectedOrderId.current !== orderId) return
     if (error) {
       setDetailError('تعذر تحديث حالة الطلب. حدّث القائمة وحاول مجددًا.')
       return
     }
-    setOrders((current) => current.map((order) => order.id === selectedOrder.id ? { ...order, status } : order))
-    setSelectedOrder((current) => current ? { ...current, status } : current)
+    setOrders((current) => current.map((order) => order.id === orderId ? { ...order, status } : order))
+    setSelectedOrder((current) => current?.id === orderId ? { ...current, status } : current)
   }
 
   const visibleOrders = filterOrders(orders, statusFilter, search)
@@ -96,7 +101,7 @@ export default function AdminPage() {
       <div className="admin-page">
         <header className="admin-header">
           {selectedOrder ? (
-            <button className="admin-back-button" type="button" onClick={() => { setSelectedOrder(null); setItems(null) }} aria-label="العودة إلى الطلبات">
+            <button className="admin-back-button" type="button" onClick={() => { selectedOrderId.current = null; setSelectedOrder(null); setItems(null) }} aria-label="العودة إلى الطلبات">
               <ArrowRight size={20} />
             </button>
           ) : <span className="admin-brand-mark" aria-hidden="true"><ClipboardText size={22} weight="duotone" /></span>}
