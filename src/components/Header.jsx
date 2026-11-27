@@ -17,9 +17,9 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navigate = useNavigate();
-  const index = useSearchIndex();
+  const index = useSearchIndex(isSearchOpen);
   const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() });
-  const results = index && !index.unavailable ? searchIndex(index, query) : null;
+  const results = query.trim() && index && !index.unavailable ? searchIndex(index, query) : null;
 
   const closeAll = () => {
     setIsMenuOpen(false);
@@ -112,7 +112,7 @@ export default function Header() {
             onKeyDown={(e) => e.key === 'Escape' && setIsSearchOpen(false)}
           >
             <MagnifyingGlass aria-hidden="true" />
-            <Combobox store={combobox} width="target" position="bottom-start" offset={6} onOptionSubmit={(value) => {
+            <Combobox store={combobox} width="target" position="bottom-start" offset={6} hideDetached={false} onOptionSubmit={(value) => {
               const [kind, id] = value.split(':');
               if (kind === 'product') navigate({ to: '/product/$id', params: { id } });
               else navigate({ to: '/category/$slug', params: { slug: id } });
@@ -124,8 +124,8 @@ export default function Header() {
               className={styles['search-input']}
               type="search"
               value={query}
-              onChange={(e) => { setQuery(e.target.value.slice(0, 60)); combobox.openDropdown(); combobox.resetSelectedOption(); }}
-              onFocus={() => { if (query) combobox.openDropdown(); }}
+              onChange={(e) => { const value = e.target.value.slice(0, 60); setQuery(value); if (value.trim()) combobox.openDropdown(); else combobox.closeDropdown(); combobox.resetSelectedOption(); }}
+              onFocus={() => { if (query.trim()) combobox.openDropdown(); }}
               maxLength={60}
               placeholder="ابحث عن منتج أو ماركة..."
               aria-label="البحث في المتجر"

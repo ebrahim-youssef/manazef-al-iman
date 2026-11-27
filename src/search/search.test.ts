@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { searchIndex } from './search'
+import { normalizeSearch, searchIndex } from './search'
 
 const index = {
   products: [
@@ -12,6 +12,9 @@ const index = {
 }
 
 describe('catalog search', () => {
+  it('normalizes U+06D6 to the same brand name as SQL', () => {
+    expect(normalizeSearch('أر\u06d6يال')).toBe('اريال')
+  })
   it('finds near misses and normalizes Arabic letters', () => {
     expect(searchIndex(index, 'بريلل').products[0]?.id).toBe('1')
     expect(searchIndex(index, 'اريال').products[0]?.id).toBe('2')

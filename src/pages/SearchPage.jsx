@@ -6,18 +6,20 @@ import ProductGrid from '../components/ProductGrid';
 import { Route } from '../routes/search';
 import { CatalogUnavailable } from '../components/CatalogUnavailable';
 import { searchIndex } from '../search/search';
-import { useSearchIndex } from '../search/useSearchIndex';
 
 export default function SearchPage() {
   const catalog = Route.useLoaderData();
   const { q: searchQuery } = useSearch({ from: '/search' });
   const navigate = useNavigate({ from: '/search' });
-  const index = useSearchIndex();
   const q = searchQuery.slice(0, 60).trim();
-  if (catalog.unavailable || index?.unavailable) return <CatalogUnavailable />;
-  const matches = index ? searchIndex(index, q) : null;
+  if (catalog.unavailable) return <CatalogUnavailable />;
+  const index = {
+    products: catalog.products.map(({ id, name, brand, brandArabicName, category, image, price }) => ({ id, name, brand, brandArabic: brandArabicName, category, image, price })),
+    categories: catalog.categories.map(({ id, slug, name }) => ({ id, slug, name })),
+  };
+  const matches = searchIndex(index, q);
   const productsById = new Map(catalog.products.map((product) => [product.id, product]));
-  const products = matches ? matches.products.map((product) => productsById.get(product.id)).filter(Boolean) : [];
+  const products = matches.products.map((product) => productsById.get(product.id)).filter(Boolean);
 
   return (
     <Box component="section" className={shared['page']}>
@@ -25,8 +27,7 @@ export default function SearchPage() {
         <nav className={shared['breadcrumb']} aria-label="مسار التنقل"><Link to="/">الرئيسية</Link><span aria-hidden="true">/</span><span aria-current="page">البحث</span></nav>
         <Box component="header" className={shared['page-head']}><Title order={1}>{q ? `نتائج «${q}»` : 'البحث'}</Title></Box>
         <SearchBox key={q} initialQuery={q} onSearch={(term) => navigate({ search: { q: term } })} />
-        {q && !matches && <Text role="status">جارٍ تحميل البحث...</Text>}
-        {q && matches && <>
+        {q && <>
           <Text aria-live="polite" my="md">{products.length} منتج</Text>
           {matches.categories.map((category) => <Anchor key={category.id} component={Link} to="/category/$slug" params={{ slug: category.slug }} display="block">{category.name}</Anchor>)}
           {matches.didYouMean && <Anchor component={Link} to="/search" search={{ q: matches.didYouMean }}>هل تقصد: {matches.didYouMean}؟</Anchor>}
