@@ -265,7 +265,7 @@ export default function AdminProductsPage() {
 
   return (
     <main className={styles['admin-shell']} dir="rtl">
-      <div className={styles['admin-page'] + ' ' + styles['admin-products-page']}>
+      <div className={[styles['admin-page'], styles['admin-products-page']].join(' ')}>
         <header className={styles['admin-header']}>
           <div className={styles['admin-header-copy']}><h1>المنتجات</h1><p>إدارة المنتجات والأسعار والصور</p></div>
           <Button className={styles['admin-products-add']} type="button" leftSection={<Plus size={18} />} onClick={() => openProduct()}>إضافة</Button>
@@ -318,7 +318,7 @@ export default function AdminProductsPage() {
                 <Combobox.Dropdown><Combobox.Options>{nameSuggestions.slice(0, 6).map((product) => <Combobox.Option value={product.id} key={product.id}>{product.name}</Combobox.Option>)}</Combobox.Options></Combobox.Dropdown>
               </Combobox>
               <Combobox store={combobox} onOptionSubmit={(value) => void selectBrand(value)}>
-                <Combobox.Target><InputBase label="العلامة التجارية" aria-label="العلامة التجارية" required value={brandSearch} onChange={(event) => { setBrandSearch(event.currentTarget.value); setField('brand_id', ''); combobox.openDropdown() }} onFocus={() => combobox.openDropdown()} /></Combobox.Target>
+                <Combobox.Target><InputBase label="العلامة التجارية" aria-label="العلامة التجارية" required withAsterisk={false} value={brandSearch} onChange={(event) => { setBrandSearch(event.currentTarget.value); setField('brand_id', ''); combobox.openDropdown() }} onFocus={() => combobox.openDropdown()} /></Combobox.Target>
                 <Combobox.Dropdown><Combobox.Options>
                   {brands.filter((brand) => [brand.name, brand.arabic_name ?? ''].some((name) => normalizeBrandName(name).includes(normalizeBrandName(brandSearch)))).map((brand) => <Combobox.Option value={brand.id} key={brand.id}>{brand.name}</Combobox.Option>)}
                   {brandSearch.trim() && <Combobox.Option value="$create">إضافة «{brandSearch.trim()}»</Combobox.Option>}

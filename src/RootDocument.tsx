@@ -8,7 +8,7 @@ import Footer from './components/Footer'
 import ScrollToTop from './components/ScrollToTop'
 import VisitUs from './components/VisitUs'
 import type { getShopSettings } from './data/settings'
-import './App.css'
+import shell from './App.module.css'
 import adminFrame from './AdminFrame.module.css'
 import './index.css'
 
@@ -35,10 +35,10 @@ export default function RootDocument({ settings, isAdmin }: { settings: Awaited<
           </div>
         ) : (
           <CartProvider>
-            <div className="app-shell">
+            <div className={shell['app-shell']}>
               <ScrollToTop />
               <Header />
-              <main className="main-content"><Outlet /></main>
+              <main className={shell['main-content']}><Outlet /></main>
               <VisitUs settings={settings} />
               <Footer />
             </div>

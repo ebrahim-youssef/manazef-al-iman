@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Box } from '@mantine/core';
 import { Link } from '@tanstack/react-router';
 import { CaretLeft, MapPinLine, ShoppingCartSimple, WhatsappLogo } from '@phosphor-icons/react';
@@ -18,9 +19,9 @@ const ORDER_STEPS = [
 
 function OrderSteps() {
   return (
-    <section className={styles['home-order'] + ' ' + 'section'} aria-labelledby="home-order-title">
-      <Box className="container">
-        <h2 className="section-title" id="home-order-title">كيف تطلب؟</h2>
+    <section className={[styles['home-order'], shared['section']].join(' ')} aria-labelledby="home-order-title">
+      <Box className={shared['container']}>
+        <h2 className={shared['section-title']} id="home-order-title">كيف تطلب؟</h2>
         <ol className={styles['home-order-steps']}>
           {ORDER_STEPS.map(({ label, Icon }) => (
             <li key={label}>
@@ -37,16 +38,16 @@ function OrderSteps() {
 
 function SectionHeader({ title, subtitle, badge, linkTo, linkLabel, titleId }) {
   return (
-    <Box className="section-header">
+    <Box className={shared['section-header']}>
       <Box>
         <Box className={styles['section-title-row']}>
-          <h2 className="section-title" id={titleId}>{title}</h2>
-          {badge && <span className={'badge' + ' ' + styles['badge-today']}>{badge}</span>}
+          <h2 className={shared['section-title']} id={titleId}>{title}</h2>
+          {badge && <span className={[shared['badge'], styles['badge-today']].join(' ')}>{badge}</span>}
         </Box>
-        {subtitle && <p className="section-subtitle">{subtitle}</p>}
+        {subtitle && <p className={shared['section-subtitle']}>{subtitle}</p>}
       </Box>
       {linkTo && (
-        <Link to={linkTo} className="see-all">
+        <Link to={linkTo} className={shared['see-all']}>
           {linkLabel}
           <CaretLeft weight="bold" aria-hidden="true" />
         </Link>
@@ -69,8 +70,8 @@ export default function Home() {
       <HeroBanner />
       <OrderSteps />
 
-      <section className="section" id="categories">
-        <Box className="container">
+      <section className={shared['section']} id="categories">
+        <Box className={shared['container']}>
           <SectionHeader title="تسوق حسب القسم" />
           <Box className={styles['home-categories-grid']}>
             {categories.map((cat) => (
@@ -81,8 +82,8 @@ export default function Home() {
       </section>
 
       {saleOffers.length > 0 && (
-        <section className={'section' + ' ' + styles['section-alt']} aria-labelledby="home-offers-title">
-          <Box className="container">
+        <section className={[shared['section'], styles['section-alt']].join(' ')} aria-labelledby="home-offers-title">
+          <Box className={shared['container']}>
             <SectionHeader
               title="العروض"
               subtitle="خصومات لفترة محدودة على منتجات مختارة."
@@ -95,8 +96,8 @@ export default function Home() {
         </section>
       )}
 
-      <section className={'section' + ' ' + styles['home-friday']} aria-labelledby="home-friday-title">
-        <Box className="container">
+      <section className={[shared['section'], styles['home-friday']].join(' ')} aria-labelledby="home-friday-title">
+        <Box className={shared['container']}>
           <SectionHeader
             title="عروض الجمعة"
             subtitle="أسعار خاصة على منتجات مختارة كل يوم جمعة."
@@ -107,19 +108,19 @@ export default function Home() {
         </Box>
       </section>
 
-      <section className="section">
-        <Box className="container">
+      <section className={shared['section']}>
+        <Box className={shared['container']}>
           <SectionHeader title="مختارات لك" />
           <ProductGrid products={featuredProducts} />
         </Box>
       </section>
 
       <section className={styles['wholesale-banner']}>
-        <Box className={'container' + ' ' + styles['wholesale-banner-inner']}>
+        <Box className={[shared['container'], styles['wholesale-banner-inner']].join(' ')}>
           <Box>
             <h2>تسوق بالجملة</h2>
             <p>وفر أكتر مع عروض الكراتين والكميات. أسعار خاصة للكميات مع توضيح كامل لمحتوى كل كرتونة.</p>
-          <Link to="/category/$slug" params={{ slug: 'wholesale' }} className="btn btn-primary">اكتشف منتجات الجملة</Link>
+          <Link to="/category/$slug" params={{ slug: 'wholesale' }} className={[shared['btn'], shared['btn-primary']].join(' ')}>اكتشف منتجات الجملة</Link>
           </Box>
           <Box className={styles['wholesale-banner-image']}>
             <img

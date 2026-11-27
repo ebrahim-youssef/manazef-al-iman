@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { useState } from 'react';
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import { Anchor, Box, Button, Container, Group, Text, TextInput, Title } from '@mantine/core';
@@ -19,10 +20,10 @@ export default function SearchPage() {
   const products = matches ? matches.products.map((product) => productsById.get(product.id)).filter(Boolean) : [];
 
   return (
-    <Box component="section" className="page">
-      <Container className="container">
-        <nav className="breadcrumb" aria-label="مسار التنقل"><Link to="/">الرئيسية</Link><span aria-hidden="true">/</span><span aria-current="page">البحث</span></nav>
-        <Box component="header" className="page-head"><Title order={1}>{q ? `نتائج «${q}»` : 'البحث'}</Title></Box>
+    <Box component="section" className={shared['page']}>
+      <Container className={shared['container']}>
+        <nav className={shared['breadcrumb']} aria-label="مسار التنقل"><Link to="/">الرئيسية</Link><span aria-hidden="true">/</span><span aria-current="page">البحث</span></nav>
+        <Box component="header" className={shared['page-head']}><Title order={1}>{q ? `نتائج «${q}»` : 'البحث'}</Title></Box>
         <SearchBox key={q} initialQuery={q} onSearch={(term) => navigate({ search: { q: term } })} />
         {q && !matches && <Text role="status">جارٍ تحميل البحث...</Text>}
         {q && matches && <>

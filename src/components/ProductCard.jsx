@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Box, UnstyledButton } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
@@ -35,8 +36,8 @@ export default function ProductCard({ product }) {
     <article className={styles['product-card']}>
       <Link to={`/product/${product.id}`} className={styles['product-card-image-wrap']}>
         <img src={product.image} alt={product.name} className={styles['product-card-image']} loading="lazy" />
-        {discount > 0 && <span className={'badge' + ' ' + 'badge-discount' + ' ' + styles['product-card-badge']}>خصم {discount}%</span>}
-        {!product.available && <span className={'badge' + ' ' + 'badge-out' + ' ' + styles['product-card-badge']}>غير متوفر</span>}
+        {discount > 0 && <span className={[shared['badge'], shared['badge-discount'], styles['product-card-badge']].join(' ')}>خصم {discount}%</span>}
+        {!product.available && <span className={[shared['badge'], shared['badge-out'], styles['product-card-badge']].join(' ')}>غير متوفر</span>}
       </Link>
       <Box className={styles['product-card-body']}>
         <p className={styles['product-card-brand']}>{product.brand}</p>
@@ -44,9 +45,9 @@ export default function ProductCard({ product }) {
           <h3>{product.name}</h3>
         </Link>
         <Box className={styles['product-card-pricing']}>
-          <span className={styles['product-card-price'] + ' ' + 'price'}>{formatEGP(product.price)}</span>
+          <span className={[styles['product-card-price'], shared['price']].join(' ')}>{formatEGP(product.price)}</span>
           {product.originalPrice ? (
-            <span className={styles['product-card-old'] + ' ' + 'price'}>{formatEGP(product.originalPrice)}</span>
+            <span className={[styles['product-card-old'], shared['price']].join(' ')}>{formatEGP(product.originalPrice)}</span>
           ) : null}
         </Box>
         {product.fridayPrice !== null && !product.isFridayActive && (
@@ -54,7 +55,7 @@ export default function ProductCard({ product }) {
         )}
         <UnstyledButton
           type="button"
-          className={'btn btn-primary ' + styles['product-card-btn'] + (isJustAdded ? ' ' + styles['is-added'] : '')}
+          className={[shared['btn'], shared['btn-primary'], styles['product-card-btn'], isJustAdded ? styles['is-added'] : ''].join(' ')}
           onClick={handleAdd}
           disabled={!product.available}
           aria-live="polite"

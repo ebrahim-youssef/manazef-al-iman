@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from '@tanstack/react-router';
 import { Minus, Plus, ShoppingCart, Trash, WhatsappLogo } from '@phosphor-icons/react';
@@ -253,20 +254,20 @@ export default function CartPage() {
   };
 
   return (
-    <section className={'page'}>
-      <div className={'container'}>
-        <header className={'page-head'}>
+    <section className={shared['page']}>
+      <div className={shared['container']}>
+        <header className={shared['page-head']}>
           <h1>سلة التسوق</h1>
           {hasLoaded && items.length > 0 && <p>راجع الكميات، ثم اكتب بيانات التوصيل وأكد الطلب على واتساب.</p>}
         </header>
         {!hasLoaded || (hasItems && !hasLoadedLines) ? (
           <div className={styles['cart-loading']} role="status" aria-live="polite">جارٍ تحديث سلة التسوق…</div>
         ) : items.length === 0 ? (
-          <div className={'empty-state'}>
-            <div className={'empty-icon'} aria-hidden="true"><ShoppingCart weight="duotone" /></div>
+          <div className={shared['empty-state']}>
+            <div className={shared['empty-icon']} aria-hidden="true"><ShoppingCart weight="duotone" /></div>
             <h3>سلة التسوق فارغة</h3>
             <p>لم تقم بإضافة أي منتجات بعد. تصفح الأقسام واختر ما يناسبك.</p>
-            <Link to="/" className={'btn' + ' ' + 'btn-primary'} style={{ marginTop: 16 }}>متابعة التسوق</Link>
+            <Link to="/" className={[shared['btn'], shared['btn-primary']].join(' ')} style={{ marginTop: 16 }}>متابعة التسوق</Link>
           </div>
         ) : (
           <div className={styles['cart-layout']}>
@@ -281,7 +282,7 @@ export default function CartPage() {
                   <div className={`${styles['cart-item']}${line.available ? '' : ` ${styles.unavailable}`}`} key={item.id}>
                     {line.available ? (
                       <Link to={`/product/${item.id}`} className={styles['cart-item-image']}><img src={line.image} alt={line.name} /></Link>
-                    ) : <div className={styles['cart-item-image'] + ' ' + styles['unavailable-image']} aria-hidden="true"><ShoppingCart /></div>}
+                    ) : <div className={[styles['cart-item-image'], styles['unavailable-image']].join(' ')} aria-hidden="true"><ShoppingCart /></div>}
                     <div className={styles['cart-item-info']}>
                       {line.available ? <Link to={`/product/${item.id}`} className={styles['cart-item-name']}>{line.name}</Link> : <span className={styles['cart-item-name']}>{line.name}</span>}
                       {line.available ? <p className={styles['cart-item-unit']}>{formatEGP(line.price)}</p> : <p className={styles['cart-item-unavailable']}>هذا المنتج غير متوفر ولن يضاف إلى الطلب.</p>}
@@ -297,7 +298,7 @@ export default function CartPage() {
                         <Button type="button" unstyled className={styles['cart-remove']} onClick={() => removeItem(item.id)}><Trash aria-hidden="true" />حذف</Button>
                       </div>
                     </div>
-                    {line.available && <div className={styles['cart-item-total']}><span className={'price'}>{formatEGP(line.price * item.quantity)}</span></div>}
+                    {line.available && <div className={styles['cart-item-total']}><span className={shared['price']}>{formatEGP(line.price * item.quantity)}</span></div>}
                   </div>
                 );
               })}
@@ -312,13 +313,13 @@ export default function CartPage() {
                   <TextInput className={styles['checkout-address']} id="checkout-address" name="address" label="العنوان" autoComplete="street-address" required withAsterisk={false} {...form.getInputProps('address')} />
                   <Textarea className={styles['checkout-address']} id="checkout-notes" name="notes" label="ملاحظات اختيارية" rows={3} {...form.getInputProps('notes')} />
                 </div>
-                <div className={'turnstile-widget'} ref={turnstileContainer} />
+                <div ref={turnstileContainer} />
                 {refreshError && <div className={styles['checkout-error']} role="alert"><p>تعذر تحديث أسعار المنتجات. حاول مجددًا.</p><button type="button" onClick={() => setRefreshVersion((value) => value + 1)}>إعادة المحاولة</button></div>}
                 {notice && <p className={styles['checkout-hint']} role="status">{notice}</p>}
                 {!settings.delivery_areas?.length && <p className={styles['checkout-hint']}>لم تُضف مناطق التوصيل بعد. <a href={fallbackUrl}>تواصل معنا عبر واتساب</a> لتحديد منطقتك.</p>}
                 {error && <div className={styles['checkout-error']} role="alert"><p>{error}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
                 {turnstileLoadFailed && !error && <div className={styles['checkout-error']} role="alert"><p>{CHECKOUT_FAILURE_MESSAGE}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
-                <Button type="submit" className={'btn' + ' ' + 'btn-primary' + ' ' + styles['whatsapp-btn']} disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
+                <Button type="submit" className={[shared['btn'], shared['btn-primary'], styles['whatsapp-btn']].join(' ')} disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
                   <WhatsappLogo weight="bold" aria-hidden="true" />
                   {isSubmitting ? 'جارٍ تسجيل الطلب…' : 'تأكيد الطلب عبر واتساب'}
                 </Button>
@@ -328,13 +329,13 @@ export default function CartPage() {
             <aside className={styles['cart-summary']}>
               <h2>ملخص الطلب</h2>
               <div className={styles['summary-row']}><span>عدد القطع المتاحة</span><span>{availableCount}</span></div>
-              <div className={styles['summary-row'] + ' ' + styles['summary-total']}><span>الإجمالي بدون التوصيل</span><span className={'price'}>{formatEGP(total)}</span></div>
+              <div className={[styles['summary-row'], styles['summary-total']].join(' ')}><span>الإجمالي بدون التوصيل</span><span className={shared['price']}>{formatEGP(total)}</span></div>
               <p className={styles['summary-note']}>يُتفق على تكلفة التوصيل عبر المحادثة.</p>
-              <Link to="/" className={'btn' + ' ' + 'btn-ghost'} style={{ width: '100%' }}>متابعة التسوق</Link>
+              <Link to="/" className={[shared['btn'], shared['btn-ghost']].join(' ')} style={{ width: '100%' }}>متابعة التسوق</Link>
             </aside>
             <div className={styles['cart-checkout-bar']}>
-              <div><span>الإجمالي بدون التوصيل</span><strong className={'price'}>{formatEGP(total)}</strong></div>
-              <a href="#checkout" className={'btn' + ' ' + 'btn-primary' + ' ' + styles['whatsapp-btn']}>تابع لإتمام الطلب</a>
+              <div><span>الإجمالي بدون التوصيل</span><strong className={shared['price']}>{formatEGP(total)}</strong></div>
+              <a href="#checkout" className={[shared['btn'], shared['btn-primary'], styles['whatsapp-btn']].join(' ')}>تابع لإتمام الطلب</a>
             </div>
           </div>
         )}

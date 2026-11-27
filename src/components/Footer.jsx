@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Link, useLoaderData } from '@tanstack/react-router';
 import { FacebookLogo, InstagramLogo, TiktokLogo, WhatsappLogo } from '@phosphor-icons/react';
 import { Anchor, Container, Group } from '@mantine/core';
@@ -9,8 +10,8 @@ export default function Footer() {
   const { categories } = settings;
   return (
     <footer className={styles['site-footer']}>
-      <Container className={'container' + ' ' + styles['footer-grid']}>
-        <div className={styles['footer-col'] + ' ' + styles['footer-brand-col']}>
+      <Container className={[shared['container'], styles['footer-grid']].join(' ')}>
+        <div className={[styles['footer-col'], styles['footer-brand-col']].join(' ')}>
           <Link to="/" className={styles['footer-brand']}>{settings.shop_name}</Link>
           <p>
             متجرك الموثوق للمنظفات ومستحضرات التجميل ومنتجات الجملة. نوفر لك جودة عالية وأسعار مناسبة لكل احتياجات بيتك.
@@ -43,7 +44,7 @@ export default function Footer() {
         </div>
       </Container>
       <div className={styles['footer-bottom']}>
-        <Container className={'container' + ' ' + styles['footer-bottom-inner']}>
+        <Container className={[shared['container'], styles['footer-bottom-inner']].join(' ')}>
           <p>© {new Date().getFullYear()} {settings.shop_name}. جميع الحقوق محفوظة.</p>
           <p>الأسعار بالجنيه المصري (EGP)</p>
         </Container>

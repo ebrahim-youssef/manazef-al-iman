@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Box } from '@mantine/core';
 import { Link } from '@tanstack/react-router';
 import { Package, Truck, WhatsappLogo } from '@phosphor-icons/react';
@@ -7,13 +8,13 @@ import styles from './HeroBanner.module.css';
 export default function HeroBanner() {
   return (
     <section className={styles['hero']}>
-      <Box className={'container' + ' ' + styles['hero-inner']}>
+      <Box className={[shared['container'], styles['hero-inner']].join(' ')}>
         <Box className={styles['hero-content']}>
           <h1>كل احتياجات بيتك في مكان واحد</h1>
           <p>اكتشف مجموعة متنوعة من المنظفات ومستحضرات التجميل بأسعار مميزة.</p>
           <Box className={styles['hero-actions']}>
-            <Link to="/category/cleaners" className="btn btn-primary">تسوق الآن</Link>
-            <Link to="/category/offers" className="btn btn-outline">شاهد العروض</Link>
+            <Link to="/category/cleaners" className={[shared['btn'], shared['btn-primary']].join(' ')}>تسوق الآن</Link>
+            <Link to="/category/offers" className={[shared['btn'], shared['btn-outline']].join(' ')}>شاهد العروض</Link>
           </Box>
           <ul className={styles['hero-facts']}>
             <li><Package aria-hidden="true" />جملة وقطاعي</li>
