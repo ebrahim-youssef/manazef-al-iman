@@ -25,6 +25,10 @@ const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixtu
     id: 'cos-1', name: 'شامبو Sunsilk لشعر ناعم 600 مل', category: 'cosmetics', price: 85,
     originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Sunsilk', image: '', detailImage: '', description: '',
     available: true, bestSeller: true, createdAt: '2026-03-01',
+  }, {
+    id: 'pril', name: 'بريل', category: 'cleaners', price: 30,
+    originalPrice: null, unit: 'العبوة', unitType: 'retail', brand: 'Pril', image: '', detailImage: '', description: '',
+    available: true, bestSeller: false, createdAt: '2026-03-01',
   }],
   settings: {},
 }, shopSettingsFixture: {
@@ -43,7 +47,7 @@ const { catalogFixture, shopSettingsFixture } = vi.hoisted(() => ({ catalogFixtu
 
 vi.mock('./data/catalog', () => ({
   getCatalog: vi.fn().mockResolvedValue(catalogFixture),
-  searchCatalog: vi.fn().mockResolvedValue(catalogFixture),
+  getSearchIndex: vi.fn().mockResolvedValue(catalogFixture),
 }))
 
 vi.mock('./data/settings', () => ({
@@ -71,6 +75,31 @@ afterEach(() => {
 })
 
 describe('store routes', () => {
+  it('opens a misspelled product suggestion and uses the same matching on Enter', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
+    render(<RouterProvider router={router} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'بحث' }))
+    fireEvent.change(screen.getByRole('combobox', { name: 'البحث في المتجر' }), { target: { value: 'بريلل' } })
+    fireEvent.click(await screen.findByRole('option', { name: /بريل/ }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/product/pril'))
+  })
+
+  it('shows matching results and a did-you-mean link', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
+    render(<RouterProvider router={router} />)
+    fireEvent.click(await screen.findByRole('button', { name: 'بحث' }))
+    const input = screen.getByRole('combobox', { name: 'البحث في المتجر' })
+    fireEvent.change(input, { target: { value: 'بريلل' } })
+    await screen.findByRole('option', { name: /بريل/ })
+    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' })
+    fireEvent.submit(screen.getByRole('search'))
+    expect(await screen.findByRole('heading', { name: 'بريل' })).toBeInTheDocument()
+    await router.navigate({ to: '/search', search: { q: 'بريللل' } })
+    fireEvent.click(await screen.findByRole('link', { name: /هل تقصد.*بريل/ }))
+    await waitFor(() => expect(router.state.location.search.q).toBe('بريل'))
+  })
   it('keeps the right-to-left shell, search, cart and phone usable', async () => {
     const router = getRouter()
     router.update({ history: createMemoryHistory({ initialEntries: ['/'] }) })
@@ -79,7 +108,7 @@ describe('store routes', () => {
     expect(document.documentElement).toHaveAttribute('dir', 'rtl')
     expect(screen.getByRole('link', { name: '0109 796 1866' })).toHaveAttribute('href', 'tel:01097961866')
     fireEvent.click(screen.getByRole('button', { name: 'بحث' }))
-    fireEvent.change(screen.getByRole('searchbox', { name: 'البحث في المتجر' }), { target: { value: 'شامبو' } })
+    fireEvent.change(screen.getByRole('combobox', { name: 'البحث في المتجر' }), { target: { value: 'شامبو' } })
     fireEvent.submit(screen.getByRole('search'))
     await waitFor(() => expect(router.state.location.href).toContain('/search?q='))
   })
