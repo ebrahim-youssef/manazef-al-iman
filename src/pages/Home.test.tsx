@@ -42,6 +42,7 @@ const product = (overrides: Record<string, unknown> = {}) => ({
   category: 'cleaners',
   name: 'منظف للاختبار',
   brand: 'الإيمان',
+  brandArabicName: null,
   unit: 'عبوة',
   description: '',
   price: 100,
