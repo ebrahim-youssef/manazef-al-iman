@@ -13,7 +13,7 @@ type Product = ProductDraft & { created_at: string; updated_at: string }
 type Category = { id: string; name: string; image_path: string; sort_order: number }
 
 const emptyProduct: ProductDraft = {
-  id: '', category_id: '', name: '', brand: '', unit: '', description: '', image_path: '', price_egp: Number.NaN,
+  id: '', category_id: '', name: '', brand: '', description: '', image_path: '', price_egp: Number.NaN,
   is_available: true, is_featured: false, sale_type: 'none', sale_value: null, sale_starts_at: null,
   sale_ends_at: null, friday_type: 'none', friday_value: null,
 }
@@ -248,7 +248,6 @@ export default function AdminProductsPage() {
               <label>القسم<select required value={editing.category_id} onChange={(event) => setField('category_id', event.target.value)}><option value="" disabled>اختر القسم</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>
               <label>اسم المنتج<input required value={editing.name} onChange={(event) => setField('name', event.target.value)} /></label>
               <label>العلامة التجارية<input required value={editing.brand} onChange={(event) => setField('brand', event.target.value)} /></label>
-              <label>وحدة البيع<input required value={editing.unit} onChange={(event) => setField('unit', event.target.value)} /></label>
               <label>الوصف<textarea rows={3} value={editing.description} onChange={(event) => setField('description', event.target.value)} /></label>
               <label>السعر بالجنيه<input required type="number" min="1" step="1" value={Number.isNaN(editing.price_egp) ? '' : editing.price_egp} onChange={(event) => setField('price_egp', event.target.value === '' ? Number.NaN : Number(event.target.value))} /></label>
               <div className="admin-product-checks"><label><input type="checkbox" checked={editing.is_available} onChange={(event) => setField('is_available', event.target.checked)} /> متوفر</label><label><input type="checkbox" checked={editing.is_featured} onChange={(event) => setField('is_featured', event.target.checked)} /> مختار لك</label></div>

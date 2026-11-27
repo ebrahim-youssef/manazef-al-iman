@@ -10,7 +10,6 @@ const SUPABASE_TIMEOUT_MS = 8_000
 type ProductRow = {
   id: string
   name: string
-  unit: string
   image_path: string
   price_egp: number
   is_available: boolean
@@ -26,7 +25,6 @@ function toOrderProduct(product: ProductRow): OrderProduct {
   return {
     id: product.id,
     name: product.name,
-    unit: product.unit,
     available: product.is_available,
     price: product.price_egp,
     saleType: product.sale_type,
@@ -58,19 +56,18 @@ export const getCurrentCartLines = createServerFn({ method: 'POST' })
     if (cart.length === 0) return []
     const { env, client } = await createReadClient()
     const { data: products, error } = await client.from('products')
-      .select('id,name,unit,image_path,price_egp,is_available,sale_type,sale_value,sale_starts_at,sale_ends_at,friday_type,friday_value')
+      .select('id,name,image_path,price_egp,is_available,sale_type,sale_value,sale_starts_at,sale_ends_at,friday_type,friday_value')
       .in('id', [...new Set(cart.map((item) => item.id))])
     if (error) throw new Error(`Cart products could not be loaded: ${error.message}`)
     const productById = new Map((products as ProductRow[]).map((product) => [product.id, product]))
     return cart.map(({ id, quantity }) => {
       const product = productById.get(id)
-      if (!product) return { id, quantity, name: 'منتج محذوف', unit: '', image: '', price: 0, available: false }
+      if (!product) return { id, quantity, name: 'منتج محذوف', image: '', price: 0, available: false }
       const price = calculatePrice(toOrderProduct(product), new Date()).shownPrice
       return {
         id,
         quantity,
         name: product.name,
-        unit: product.unit,
         image: getImageUrl(product.image_path, 'card', env.SUPABASE_URL),
         price,
         available: product.is_available,
@@ -118,7 +115,7 @@ export const createOrder = createServerFn({ method: 'POST' })
       cart,
       async (ids) => {
         const { data: products, error } = await client.from('products')
-          .select('id,name,unit,image_path,price_egp,is_available,sale_type,sale_value,sale_starts_at,sale_ends_at,friday_type,friday_value')
+          .select('id,name,image_path,price_egp,is_available,sale_type,sale_value,sale_starts_at,sale_ends_at,friday_type,friday_value')
           .in('id', ids)
         if (error) throw new Error(`Order products could not be loaded: ${error.message}`)
         return (products as ProductRow[]).map(toOrderProduct)

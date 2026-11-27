@@ -42,7 +42,7 @@ describe('createOrderCore', () => {
       new Date('2026-11-26T12:00:00.000Z'),
     )
 
-    expect(saveOrder).toHaveBeenCalledWith([{ id: 'cos-1', name: 'شامبو', unit: 'العبوة', unitPrice: 80, quantity: 2 }])
+    expect(saveOrder).toHaveBeenCalledWith([{ id: 'cos-1', name: 'شامبو', unitPrice: 80, quantity: 2 }])
     expect(result.total).toBe(160)
   })
 

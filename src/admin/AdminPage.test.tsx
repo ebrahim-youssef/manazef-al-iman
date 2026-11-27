@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AdminClientContext } from './AdminClientContext'
 import AdminPage from './AdminPage'
 
-const { client, order } = (() => {
+const { client, order, orderItem } = (() => {
   const order = { id: '1', code: 'AB23CD', status: 'new', total_egp: 250, item_count: 2, created_at: '2026-11-25T21:30:00.000Z' }
-  const orderItem = { id: 'item-1', product_name: 'صابون محفوظ', unit: 'العبوة', unit_price_egp: 125, quantity: 2, line_total_egp: 250 }
+  const orderItem: { id: string; product_name: string; unit: string | null; unit_price_egp: number; quantity: number; line_total_egp: number } = { id: 'item-1', product_name: 'صابون محفوظ', unit: 'العبوة', unit_price_egp: 125, quantity: 2, line_total_egp: 250 }
   const authListeners: Array<(event: string, session: unknown) => void> = []
   const client = {
     auth: {
@@ -23,7 +23,7 @@ const { client, order } = (() => {
     })),
     rpc: vi.fn().mockResolvedValue({ error: null }),
   }
-  return { client, order }
+  return { client, order, orderItem }
 })()
 
 function renderOrders() {
@@ -33,6 +33,7 @@ function renderOrders() {
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
+  orderItem.unit = 'العبوة'
 })
 
 describe('admin orders', () => {
@@ -43,9 +44,18 @@ describe('admin orders', () => {
 
     expect(await screen.findByRole('heading', { name: 'المنتجات' })).toBeInTheDocument()
     expect(await screen.findByText('صابون محفوظ')).toBeInTheDocument()
+    expect(screen.getByText(/العبوة/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'إعادة إلى جديد' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'تم التسليم' }))
     await waitFor(() => expect(client.rpc).toHaveBeenCalled())
+  })
+
+  it('omits the unit separator for a new order item', async () => {
+    orderItem.unit = null
+    renderOrders()
+    fireEvent.click(await screen.findByRole('button', { name: /AB23CD/ }))
+    expect(await screen.findByText('صابون محفوظ')).toBeInTheDocument()
+    expect(screen.queryByText(/ · /)).not.toBeInTheDocument()
   })
 
   it('refetches orders and exposes a loading state', async () => {

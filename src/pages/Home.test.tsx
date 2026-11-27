@@ -75,6 +75,10 @@ afterEach(() => {
 })
 
 describe('home page sections', () => {
+  it('shows a product card without a sale unit', async () => {
+    await renderHome([product({ bestSeller: true })])
+    expect(screen.queryByText('لكل عبوة')).not.toBeInTheDocument()
+  })
   it('hides offers when there is no active dated sale', async () => {
     await renderHome([product()])
 

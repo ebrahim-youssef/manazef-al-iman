@@ -75,7 +75,7 @@ export default function ProductDetails() {
               {product.fridayPrice !== null && !product.isFridayActive && (
                 <p className="detail-friday-price">الجمعة بـ {formatEGP(product.fridayPrice)}</p>
               )}
-              <p className="detail-unit">وحدة البيع: <strong>{product.unit}</strong> {product.unitType === 'wholesale' ? '(سعر الكرتونة كاملة)' : '(سعر الوحدة)'}</p>
+              {product.unitType === 'wholesale' && <p className="detail-unit">السعر للكرتونة كاملة</p>}
               {product.cartonSize ? (
                 <p className="detail-unit">محتوى الكرتونة: <strong>{product.cartonSize} عبوة</strong></p>
               ) : null}

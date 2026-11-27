@@ -8,6 +8,7 @@ import { useCart } from './context/useCart'
 import { products } from './data/products'
 import { getCatalog } from './data/catalog'
 import { createOrder } from './data/orders'
+import { mergeShopSettings } from './config/shopDefaults'
 
 // The first /admin render loads supabase-js, which can pass the 1 s default under full-suite load.
 const ADMIN_FIRST_RENDER_TIMEOUT_MS = 5_000
@@ -105,6 +106,31 @@ describe('store routes', () => {
     expect(screen.queryByRole('region', { name: 'زورنا' })).not.toBeInTheDocument()
   })
 
+  it('omits the sale unit on product cards and product pages', async () => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/product/cos-1'] }) })
+    render(<RouterProvider router={router} />)
+    await screen.findByRole('heading', { name: 'شامبو Sunsilk لشعر ناعم 600 مل' })
+    expect(screen.queryByText(/وحدة البيع|لكل العبوة/)).not.toBeInTheDocument()
+  })
+
+  it('keeps carton content on a wholesale product page', async () => {
+    const wholesaleProduct = {
+      ...catalogFixture.products[0]!, category: 'wholesale', unitType: 'wholesale', cartonSize: 12,
+      percentOff: 0, isSaleActive: false, isFridayActive: false, fridayPrice: null,
+    }
+    vi.mocked(getCatalog).mockResolvedValueOnce({
+      ...catalogFixture,
+      settings: mergeShopSettings(null),
+      products: [wholesaleProduct],
+    })
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: ['/product/cos-1'] }) })
+    render(<RouterProvider router={router} />)
+    expect(await screen.findByText(/محتوى الكرتونة:/)).toBeInTheDocument()
+    expect(screen.getByText('12 عبوة')).toBeInTheDocument()
+  })
+
   it('renders the WhatsApp outage state when the catalog data layer is unavailable', async () => {
     vi.mocked(getCatalog).mockResolvedValueOnce({ unavailable: true })
     const router = getRouter()
@@ -163,6 +189,7 @@ describe('cart', () => {
     render(<RouterProvider router={router} />)
 
     expect(await screen.findByRole('heading', { name: 'بيانات التوصيل' })).toBeInTheDocument()
+    expect(screen.queryByText(/\/ العبوة/)).not.toBeInTheDocument()
     expect(screen.getByLabelText('الاسم')).toBeInTheDocument()
     expect(screen.getByLabelText(/رقم الموبايل/)).toBeInTheDocument()
     expect(screen.getByLabelText(/رقم الموبايل/)).toHaveAttribute('dir', 'ltr')

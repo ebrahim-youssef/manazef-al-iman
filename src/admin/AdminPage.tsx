@@ -126,7 +126,7 @@ export default function AdminPage() {
               <ul className="admin-item-list">
                 {items.map((item) => (
                   <li key={item.id}>
-                    <div><strong>{item.product_name}</strong><span>{item.quantity} × {formatOrderTotal(item.unit_price_egp)} · {item.unit}</span></div>
+                    <div><strong>{item.product_name}</strong><span>{item.quantity} × {formatOrderTotal(item.unit_price_egp)}{item.unit ? ` · ${item.unit}` : ''}</span></div>
                     <b>{formatOrderTotal(item.line_total_egp)}</b>
                   </li>
                 ))}

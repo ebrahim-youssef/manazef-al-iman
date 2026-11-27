@@ -282,7 +282,7 @@ export default function CartPage() {
                     ) : <div className="cart-item-image unavailable-image" aria-hidden="true"><ShoppingCart /></div>}
                     <div className="cart-item-info">
                       {line.available ? <Link to={`/product/${item.id}`} className="cart-item-name">{line.name}</Link> : <span className="cart-item-name">{line.name}</span>}
-                      {line.available ? <p className="cart-item-unit">{formatEGP(line.price)} / {line.unit}</p> : <p className="cart-item-unavailable">هذا المنتج غير متوفر ولن يضاف إلى الطلب.</p>}
+                      {line.available ? <p className="cart-item-unit">{formatEGP(line.price)}</p> : <p className="cart-item-unavailable">هذا المنتج غير متوفر ولن يضاف إلى الطلب.</p>}
                       <div className="cart-item-controls">
                         {line.available && <div className="qty-control">
                           <button type="button" onClick={() => updateQty(item.id, item.quantity - 1)} aria-label="تقليل الكمية"><Minus weight="bold" /></button>

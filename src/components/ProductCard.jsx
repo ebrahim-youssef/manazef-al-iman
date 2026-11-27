@@ -51,9 +51,6 @@ export default function ProductCard({ product }) {
         {product.fridayPrice !== null && !product.isFridayActive && (
           <p className="product-card-friday-price">الجمعة بـ {formatEGP(product.fridayPrice)}</p>
         )}
-        <p className="product-card-unit">
-          {`لكل ${product.unit}`}
-        </p>
         <button
           type="button"
           className={`btn btn-primary product-card-btn ${isJustAdded ? 'is-added' : ''}`}
