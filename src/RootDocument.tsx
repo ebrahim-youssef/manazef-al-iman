@@ -1,4 +1,7 @@
 import { HeadContent, Outlet, Scripts } from '@tanstack/react-router'
+import { ColorSchemeScript, DirectionProvider, MantineProvider, mantineHtmlProps } from '@mantine/core'
+import '@mantine/core/styles.layer.css'
+import { theme } from './theme'
 import { CartProvider } from './context/CartContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -11,8 +14,9 @@ import './index.css'
 
 export default function RootDocument({ settings, isAdmin }: { settings: Awaited<ReturnType<typeof getShopSettings>>; isAdmin: boolean }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html {...mantineHtmlProps} lang="ar" dir="rtl">
       <head>
+        <ColorSchemeScript forceColorScheme="light" />
         <HeadContent />
         <title>{`${settings.shop_name} | ${isAdmin ? 'لوحة المالك' : 'كل احتياجات بيتك في مكان واحد'}`}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,6 +24,8 @@ export default function RootDocument({ settings, isAdmin }: { settings: Awaited<
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
+        <MantineProvider theme={theme} forceColorScheme="light">
+          <DirectionProvider initialDirection="rtl">
         {isAdmin ? (
           <div className="admin-app-shell">
             <header className="admin-app-header">
@@ -38,6 +44,8 @@ export default function RootDocument({ settings, isAdmin }: { settings: Awaited<
             </div>
           </CartProvider>
         )}
+          </DirectionProvider>
+        </MantineProvider>
         <Scripts />
       </body>
     </html>

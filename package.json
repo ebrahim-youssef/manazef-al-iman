@@ -14,6 +14,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@mantine/core": "9.8.2",
+    "@mantine/form": "9.8.2",
+    "@mantine/hooks": "9.8.2",
     "@phosphor-icons/react": "2.1.10",
     "@supabase/supabase-js": "2.119.2",
     "@tanstack/react-router": "1.170.46",
@@ -31,6 +34,9 @@
     "@vitejs/plugin-react": "^6.3.0",
     "jsdom": "31.0.1",
     "oxlint": "^1.94.0",
+    "postcss": "8.5.34",
+    "postcss-preset-mantine": "1.18.0",
+    "postcss-simple-vars": "7.0.1",
     "typescript": "7.0.2",
     "vite": "^8.4.0",
     "vitest": "5.1.2",

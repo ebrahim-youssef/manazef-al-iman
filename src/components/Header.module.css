@@ -104,6 +104,7 @@
   color: var(--text-muted);
   flex-shrink: 0;
 }
+.search-input { flex: 1; min-width: 0; }
 .search-panel-form input {
   flex: 1;
   min-width: 0;
