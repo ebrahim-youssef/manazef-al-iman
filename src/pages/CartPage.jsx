@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLoaderData } from '@tanstack/react-router';
 import { Minus, Plus, ShoppingCart, Trash, WhatsappLogo } from '@phosphor-icons/react';
+import { Button, Select, Textarea, TextInput } from '@mantine/core';
+import { useForm } from '@mantine/form';
 import { getCurrentCartLines, getTurnstileSiteKey, createOrder } from '../data/orders';
 import { useCart } from '../context/useCart';
 import { formatEGP } from '../utils/format';
 import { buildOrderMessage, isEgyptianMobile, normalizeEgyptianMobile } from '../checkout/whatsappOrder';
 import { Route as RootRoute } from '../routes/__root';
 import { MAX_ITEM_QUANTITY } from '../checkout/cartLimits';
-import './CartPage.css';
+import styles from './CartPage.module.css';
 
 const CHECKOUT_STORAGE_KEY = 'iman-checkout';
 const CHECKOUT_ID_KEY = 'iman-checkout-id';
@@ -40,7 +42,14 @@ export default function CartPage() {
   const settings = useLoaderData({ from: RootRoute.id });
   const [lines, setLines] = useState([]);
   const [loadedCartKey, setLoadedCartKey] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const form = useForm({
+    initialValues: EMPTY_FORM,
+    validate: {
+      phone: (value) => isEgyptianMobile(value) ? null : 'أدخل رقم موبايل مصري صحيح يبدأ بـ 010 أو 011 أو 012 أو 015.',
+      area: (value) => settings.delivery_areas?.includes(value) ? null : 'اختر المنطقة.',
+    },
+  });
+  const setFormValues = form.setValues;
   const [formLoaded, setFormLoaded] = useState(false);
   const [hasPendingCheckout, setHasPendingCheckout] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -87,16 +96,16 @@ export default function CartPage() {
   // Restore browser-only checkout values after hydration to keep server markup stable.
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
-    setForm(loadCheckoutForm());
+    setFormValues(loadCheckoutForm());
     // oxlint-disable-next-line react/set-state-in-effect
     setHasPendingCheckout(Boolean(localStorage.getItem(CHECKOUT_ID_KEY)));
     // oxlint-disable-next-line react/set-state-in-effect
     setFormLoaded(true);
-  }, []);
+  }, [setFormValues]);
 
   useEffect(() => {
-    if (formLoaded) localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(form));
-  }, [form, formLoaded]);
+    if (formLoaded) localStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(form.values));
+  }, [form.values, formLoaded]);
 
   const hasItems = items.length > 0;
   const hasLoadedLines = loadedCartKey !== null;
@@ -174,15 +183,8 @@ export default function CartPage() {
   const whatsappNumber = (settings.whatsapp_number || '').replace(/\D/g, '');
   const fallbackUrl = `https://wa.me/${whatsappNumber}`;
 
-  const updateField = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
-
-  const handleCheckout = async (event) => {
-    event.preventDefault();
+  const handleCheckout = async (values) => {
     setError('');
-    if (!isEgyptianMobile(form.phone)) {
-      setError('أدخل رقم موبايل مصري صحيح يبدأ بـ 010 أو 011 أو 012 أو 015.');
-      return;
-    }
     setIsSubmitting(true);
     try {
       let currentLines;
@@ -236,7 +238,7 @@ export default function CartPage() {
       }));
       const message = buildOrderMessage({
         code: order.code,
-        customer: { ...form, phone: normalizeEgyptianMobile(form.phone) },
+        customer: { ...values, phone: normalizeEgyptianMobile(values.phone) },
         items: orderItems,
         total: order.total,
       });
@@ -251,88 +253,88 @@ export default function CartPage() {
   };
 
   return (
-    <section className="page">
-      <div className="container">
-        <header className="page-head">
+    <section className={'page'}>
+      <div className={'container'}>
+        <header className={'page-head'}>
           <h1>سلة التسوق</h1>
           {hasLoaded && items.length > 0 && <p>راجع الكميات، ثم اكتب بيانات التوصيل وأكد الطلب على واتساب.</p>}
         </header>
         {!hasLoaded || (hasItems && !hasLoadedLines) ? (
-          <div className="cart-loading" role="status" aria-live="polite">جارٍ تحديث سلة التسوق…</div>
+          <div className={styles['cart-loading']} role="status" aria-live="polite">جارٍ تحديث سلة التسوق…</div>
         ) : items.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon" aria-hidden="true"><ShoppingCart weight="duotone" /></div>
+          <div className={'empty-state'}>
+            <div className={'empty-icon'} aria-hidden="true"><ShoppingCart weight="duotone" /></div>
             <h3>سلة التسوق فارغة</h3>
             <p>لم تقم بإضافة أي منتجات بعد. تصفح الأقسام واختر ما يناسبك.</p>
-            <Link to="/" className="btn btn-primary" style={{ marginTop: 16 }}>متابعة التسوق</Link>
+            <Link to="/" className={'btn' + ' ' + 'btn-primary'} style={{ marginTop: 16 }}>متابعة التسوق</Link>
           </div>
         ) : (
-          <div className="cart-layout">
-            <div className="cart-items">
-              <div className="cart-items-head">
+          <div className={styles['cart-layout']}>
+            <div className={styles['cart-items']}>
+              <div className={styles['cart-items-head']}>
                 <span>المنتجات ({itemCount})</span>
-                <button type="button" className="cart-clear" onClick={clearCart}>تفريغ السلة</button>
+                <Button type="button" unstyled className={styles['cart-clear']} onClick={clearCart}>تفريغ السلة</Button>
               </div>
               {items.map((item) => {
                 const line = lineById.get(item.id) ?? { id: item.id, name: 'منتج غير متاح', available: false };
                 return (
-                  <div className={`cart-item${line.available ? '' : ' unavailable'}`} key={item.id}>
+                  <div className={`${styles['cart-item']}${line.available ? '' : ` ${styles.unavailable}`}`} key={item.id}>
                     {line.available ? (
-                      <Link to={`/product/${item.id}`} className="cart-item-image"><img src={line.image} alt={line.name} /></Link>
-                    ) : <div className="cart-item-image unavailable-image" aria-hidden="true"><ShoppingCart /></div>}
-                    <div className="cart-item-info">
-                      {line.available ? <Link to={`/product/${item.id}`} className="cart-item-name">{line.name}</Link> : <span className="cart-item-name">{line.name}</span>}
-                      {line.available ? <p className="cart-item-unit">{formatEGP(line.price)}</p> : <p className="cart-item-unavailable">هذا المنتج غير متوفر ولن يضاف إلى الطلب.</p>}
-                      <div className="cart-item-controls">
-                        {line.available && <div className="qty-control">
-                          <button type="button" onClick={() => updateQty(item.id, item.quantity - 1)} aria-label="تقليل الكمية"><Minus weight="bold" /></button>
+                      <Link to={`/product/${item.id}`} className={styles['cart-item-image']}><img src={line.image} alt={line.name} /></Link>
+                    ) : <div className={styles['cart-item-image'] + ' ' + styles['unavailable-image']} aria-hidden="true"><ShoppingCart /></div>}
+                    <div className={styles['cart-item-info']}>
+                      {line.available ? <Link to={`/product/${item.id}`} className={styles['cart-item-name']}>{line.name}</Link> : <span className={styles['cart-item-name']}>{line.name}</span>}
+                      {line.available ? <p className={styles['cart-item-unit']}>{formatEGP(line.price)}</p> : <p className={styles['cart-item-unavailable']}>هذا المنتج غير متوفر ولن يضاف إلى الطلب.</p>}
+                      <div className={styles['cart-item-controls']}>
+                        {line.available && <div className={'qty-control'}>
+                          <Button type="button" unstyled onClick={() => updateQty(item.id, item.quantity - 1)} aria-label="تقليل الكمية"><Minus weight="bold" /></Button>
                           <input type="number" min="1" max={MAX_ITEM_QUANTITY} step="1" value={item.quantity} onChange={(event) => {
                             const quantity = Number(event.target.value);
                             updateQty(item.id, Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1);
                           }} aria-label={`كمية ${line.name}`} />
-                          <button type="button" disabled={item.quantity >= MAX_ITEM_QUANTITY} onClick={() => updateQty(item.id, item.quantity + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></button>
+                          <Button type="button" unstyled disabled={item.quantity >= MAX_ITEM_QUANTITY} onClick={() => updateQty(item.id, item.quantity + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></Button>
                         </div>}
-                        <button type="button" className="cart-remove" onClick={() => removeItem(item.id)}><Trash aria-hidden="true" />حذف</button>
+                        <Button type="button" unstyled className={styles['cart-remove']} onClick={() => removeItem(item.id)}><Trash aria-hidden="true" />حذف</Button>
                       </div>
                     </div>
-                    {line.available && <div className="cart-item-total"><span className="price">{formatEGP(line.price * item.quantity)}</span></div>}
+                    {line.available && <div className={styles['cart-item-total']}><span className={'price'}>{formatEGP(line.price * item.quantity)}</span></div>}
                   </div>
                 );
               })}
 
-              <form id="checkout" className="checkout-form" onSubmit={handleCheckout}>
+              <form id="checkout" className={styles['checkout-form']} onSubmit={form.onSubmit(handleCheckout)}>
                 <h2>بيانات التوصيل</h2>
-                <p className="checkout-privacy">تُحفظ بياناتك على هذا الجهاز وتُرسل إلى المتجر داخل رسالة واتساب فقط.</p>
-                <div className="checkout-fields">
-                  <label htmlFor="checkout-name">الاسم<input id="checkout-name" name="name" autoComplete="name" required value={form.name} onChange={updateField} /></label>
-                  <label htmlFor="checkout-phone">رقم الموبايل<input id="checkout-phone" name="phone" type="tel" inputMode="tel" autoComplete="tel-national" dir="ltr" required value={form.phone} onChange={updateField} aria-describedby="phone-hint" /><span id="phone-hint">مثال: <bdi dir="ltr">01012345678</bdi></span></label>
-                  <label htmlFor="checkout-area">المنطقة<select id="checkout-area" name="area" required value={form.area} onChange={updateField}><option value="">اختر المنطقة</option>{(settings.delivery_areas || []).map((area) => <option key={area} value={area}>{area}</option>)}</select></label>
-                  <label className="checkout-address" htmlFor="checkout-address">العنوان<input id="checkout-address" name="address" autoComplete="street-address" required value={form.address} onChange={updateField} /></label>
-                  <label className="checkout-address" htmlFor="checkout-notes">ملاحظات اختيارية<textarea id="checkout-notes" name="notes" rows="3" value={form.notes} onChange={updateField} /></label>
+                <p className={styles['checkout-privacy']}>تُحفظ بياناتك على هذا الجهاز وتُرسل إلى المتجر داخل رسالة واتساب فقط.</p>
+                <div className={styles['checkout-fields']}>
+                  <TextInput id="checkout-name" name="name" label="الاسم" autoComplete="name" required withAsterisk={false} {...form.getInputProps('name')} />
+                  <TextInput id="checkout-phone" name="phone" label="رقم الموبايل" type="tel" inputMode="tel" autoComplete="tel-national" attributes={{ input: { dir: 'ltr' } }} required withAsterisk={false} description={<>مثال: <bdi dir="ltr">01012345678</bdi></>} {...form.getInputProps('phone')} />
+                  <Select id="checkout-area" name="area" label="المنطقة" placeholder="اختر المنطقة" required withAsterisk={false} data={settings.delivery_areas || []} {...form.getInputProps('area')} />
+                  <TextInput className={styles['checkout-address']} id="checkout-address" name="address" label="العنوان" autoComplete="street-address" required withAsterisk={false} {...form.getInputProps('address')} />
+                  <Textarea className={styles['checkout-address']} id="checkout-notes" name="notes" label="ملاحظات اختيارية" rows={3} {...form.getInputProps('notes')} />
                 </div>
-                <div className="turnstile-widget" ref={turnstileContainer} />
-                {refreshError && <div className="checkout-error" role="alert"><p>تعذر تحديث أسعار المنتجات. حاول مجددًا.</p><button type="button" onClick={() => setRefreshVersion((value) => value + 1)}>إعادة المحاولة</button></div>}
-                {notice && <p className="checkout-hint" role="status">{notice}</p>}
-                {!settings.delivery_areas?.length && <p className="checkout-hint">لم تُضف مناطق التوصيل بعد. <a href={fallbackUrl}>تواصل معنا عبر واتساب</a> لتحديد منطقتك.</p>}
-                {error && <div className="checkout-error" role="alert"><p>{error}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
-                {turnstileLoadFailed && !error && <div className="checkout-error" role="alert"><p>{CHECKOUT_FAILURE_MESSAGE}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
-                <button type="submit" className="btn btn-primary whatsapp-btn" disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
+                <div className={'turnstile-widget'} ref={turnstileContainer} />
+                {refreshError && <div className={styles['checkout-error']} role="alert"><p>تعذر تحديث أسعار المنتجات. حاول مجددًا.</p><button type="button" onClick={() => setRefreshVersion((value) => value + 1)}>إعادة المحاولة</button></div>}
+                {notice && <p className={styles['checkout-hint']} role="status">{notice}</p>}
+                {!settings.delivery_areas?.length && <p className={styles['checkout-hint']}>لم تُضف مناطق التوصيل بعد. <a href={fallbackUrl}>تواصل معنا عبر واتساب</a> لتحديد منطقتك.</p>}
+                {error && <div className={styles['checkout-error']} role="alert"><p>{error}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
+                {turnstileLoadFailed && !error && <div className={styles['checkout-error']} role="alert"><p>{CHECKOUT_FAILURE_MESSAGE}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
+                <Button type="submit" className={'btn' + ' ' + 'btn-primary' + ' ' + styles['whatsapp-btn']} disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
                   <WhatsappLogo weight="bold" aria-hidden="true" />
                   {isSubmitting ? 'جارٍ تسجيل الطلب…' : 'تأكيد الطلب عبر واتساب'}
-                </button>
+                </Button>
               </form>
             </div>
 
-            <aside className="cart-summary">
+            <aside className={styles['cart-summary']}>
               <h2>ملخص الطلب</h2>
-              <div className="summary-row"><span>عدد القطع المتاحة</span><span>{availableCount}</span></div>
-              <div className="summary-row summary-total"><span>الإجمالي بدون التوصيل</span><span className="price">{formatEGP(total)}</span></div>
-              <p className="summary-note">يُتفق على تكلفة التوصيل عبر المحادثة.</p>
-              <Link to="/" className="btn btn-ghost" style={{ width: '100%' }}>متابعة التسوق</Link>
+              <div className={styles['summary-row']}><span>عدد القطع المتاحة</span><span>{availableCount}</span></div>
+              <div className={styles['summary-row'] + ' ' + styles['summary-total']}><span>الإجمالي بدون التوصيل</span><span className={'price'}>{formatEGP(total)}</span></div>
+              <p className={styles['summary-note']}>يُتفق على تكلفة التوصيل عبر المحادثة.</p>
+              <Link to="/" className={'btn' + ' ' + 'btn-ghost'} style={{ width: '100%' }}>متابعة التسوق</Link>
             </aside>
-            <div className="cart-checkout-bar">
-              <div><span>الإجمالي بدون التوصيل</span><strong className="price">{formatEGP(total)}</strong></div>
-              <a href="#checkout" className="btn btn-primary whatsapp-btn">تابع لإتمام الطلب</a>
+            <div className={styles['cart-checkout-bar']}>
+              <div><span>الإجمالي بدون التوصيل</span><strong className={'price'}>{formatEGP(total)}</strong></div>
+              <a href="#checkout" className={'btn' + ' ' + 'btn-primary' + ' ' + styles['whatsapp-btn']}>تابع لإتمام الطلب</a>
             </div>
           </div>
         )}
