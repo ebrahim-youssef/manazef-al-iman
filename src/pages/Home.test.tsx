@@ -29,7 +29,7 @@ const { catalogFixture } = vi.hoisted(() => ({
 
 vi.mock('../data/catalog', () => ({
   getCatalog: vi.fn().mockResolvedValue(catalogFixture),
-  searchCatalog: vi.fn().mockResolvedValue(catalogFixture),
+  getSearchIndex: vi.fn().mockResolvedValue(catalogFixture),
 }))
 
 vi.mock('../data/settings', async () => {

@@ -130,19 +130,13 @@ async function readCatalog(): Promise<CatalogData> {
 
 export const getCatalog = createServerFn({ method: 'GET' }).handler(readCatalog)
 
-export const searchCatalog = createServerFn({ method: 'GET' })
-  .validator((query: string) => query)
-  .handler(async ({ data: query }) => {
+export const getSearchIndex = createServerFn({ method: 'GET' })
+  .handler(async () => {
     const catalog = await readCatalog()
-    if (catalog.unavailable || !query.trim()) return catalog
-    const term = query.trim().toLocaleLowerCase()
+    if (catalog.unavailable) return catalog
     return {
-      ...catalog,
-      products: catalog.products.filter((product) => {
-        const category = catalog.categories.find((item) => item.id === product.category)
-        return product.name.toLocaleLowerCase().includes(term)
-          || product.brand.toLocaleLowerCase().includes(term)
-          || category?.name.toLocaleLowerCase().includes(term)
-      }),
+      unavailable: false as const,
+      categories: catalog.categories.map(({ id, slug, name }) => ({ id, slug, name })),
+      products: catalog.products.map(({ id, name, brand, category, image, price }) => ({ id, name, brand, category, image, price })),
     }
   })

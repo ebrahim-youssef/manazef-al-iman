@@ -1,16 +1,17 @@
+import { Box } from '@mantine/core';
 import { Link } from '@tanstack/react-router';
-import './CategoryCard.css';
+import styles from './CategoryCard.module.css';
 
 export default function CategoryCard({ category, productCount }) {
   return (
-    <Link to={`/category/${category.slug}`} className="category-card">
-      <div className="category-card-image">
+    <Link to={`/category/${category.slug}`} className={styles['category-card']}>
+      <Box className={styles['category-card-image']}>
         <img src={category.image} alt="" loading="lazy" />
-      </div>
-      <div className="category-card-body">
+      </Box>
+      <Box className={styles['category-card-body']}>
         <h3>{category.name}</h3>
         <span>{productCount} منتج</span>
-      </div>
+      </Box>
     </Link>
   );
 }

@@ -13,7 +13,7 @@
   color: var(--text-muted);
 }
 
-.catalog-unavailable .btn-primary,
-.catalog-unavailable .btn-primary:hover {
+.catalog-unavailable :global(.btn-primary),
+.catalog-unavailable :global(.btn-primary):hover {
   background: var(--primary-dark);
 }

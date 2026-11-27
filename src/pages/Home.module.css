@@ -7,7 +7,7 @@
   padding-block: 28px;
   background: var(--primary-soft);
 }
-.home-order .section-title {
+.home-order :global(.section-title) {
   text-align: center;
   font-size: 1.35rem;
 }
@@ -106,11 +106,11 @@
   max-width: 520px;
   line-height: 1.8;
 }
-.wholesale-banner .btn-primary {
+.wholesale-banner :global(.btn-primary) {
   background: #fff;
   color: var(--primary-dark);
 }
-.wholesale-banner .btn-primary:hover {
+.wholesale-banner :global(.btn-primary):hover {
   background: #f0f7f2;
 }
 .wholesale-banner-image img {
@@ -134,5 +134,4 @@
   .home-order-icon { inline-size: 44px; block-size: 44px; font-size: 1.35rem; }
   .home-order-steps li:not(:last-child)::after { top: 22px; inset-inline-start: calc(50% + 30px); inline-size: calc(100% - 60px); }
   .home-categories-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
-  .category-card-body { flex-direction: column; gap: 0; }
 }

@@ -1,10 +1,11 @@
+import { Box, UnstyledButton } from '@mantine/core';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import ProductGrid from '../components/ProductGrid';
 import { Route } from '../routes/category.$slug';
 import { CatalogUnavailable } from '../components/CatalogUnavailable';
-import './CategoryPage.css';
+import styles from './CategoryPage.module.css';
 
 const ALL_BRANDS = 'all';
 
@@ -65,20 +66,20 @@ function CategoryListing({ slug, categories, products }) {
 
   if (!category) {
     return (
-      <div className="container section">
-        <div className="empty-state">
-          <div className="empty-icon" aria-hidden="true"><MagnifyingGlass weight="duotone" /></div>
+      <Box className="container section">
+        <Box className="empty-state">
+          <Box className="empty-icon" aria-hidden="true"><MagnifyingGlass weight="duotone" /></Box>
           <h3>القسم غير موجود</h3>
           <p>ارجع للرئيسية واختر قسمًا من القائمة.</p>
           <Link to="/" className="btn btn-primary" style={{ marginTop: 16 }}>العودة للرئيسية</Link>
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   }
 
   return (
     <section className="page">
-      <div className="container">
+      <Box className="container">
         <nav className="breadcrumb" aria-label="مسار التنقل">
           <Link to="/">الرئيسية</Link>
           <span aria-hidden="true">/</span>
@@ -89,8 +90,8 @@ function CategoryListing({ slug, categories, products }) {
           <p>{category.description}</p>
         </header>
 
-        <div className="listing-toolbar">
-          <label className="listing-search">
+        <Box className={styles['listing-toolbar']}>
+          <label className={styles['listing-search']}>
             <MagnifyingGlass aria-hidden="true" />
             <input
               type="search"
@@ -101,43 +102,43 @@ function CategoryListing({ slug, categories, products }) {
             />
           </label>
           <select
-            className="listing-sort"
+            className={styles['listing-sort']}
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             aria-label="ترتيب المنتجات"
           >
             {sortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-        </div>
+        </Box>
 
         {brands.length > 1 && (
-          <div className="brand-chips" role="group" aria-label="تصفية حسب الماركة">
+          <Box className={styles['brand-chips']} role="group" aria-label="تصفية حسب الماركة">
             {[ALL_BRANDS, ...brands].map((b) => (
-              <button
+              <UnstyledButton
                 key={b}
                 type="button"
-                className={`chip ${brand === b ? 'active' : ''}`}
+                className={styles.chip + (brand === b ? ' ' + styles.active : '')}
                 aria-pressed={brand === b}
                 onClick={() => setBrand(b)}
               >
                 {b === ALL_BRANDS ? 'كل الماركات' : b}
-              </button>
+              </UnstyledButton>
             ))}
-          </div>
+          </Box>
         )}
 
-        <div className="results-bar">
+        <Box className={styles['results-bar']}>
           <p aria-live="polite">{filtered.length} منتج</p>
           {hasActiveFilters && (
-            <button type="button" className="link-btn" onClick={clearFilters}>مسح التصفية</button>
+            <UnstyledButton type="button" className={styles['link-btn']} onClick={clearFilters}>مسح التصفية</UnstyledButton>
           )}
-        </div>
+        </Box>
 
         <ProductGrid
           products={filtered}
           emptyMessage="جرّب كلمة أخرى أو اختر كل الماركات."
         />
-      </div>
+      </Box>
     </section>
   );
 }
