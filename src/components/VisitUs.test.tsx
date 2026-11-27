@@ -2,6 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { mergeShopSettings } from '../config/shopDefaults'
 import VisitUs from './VisitUs'
+import { TestProviders } from '../test-utils'
 import { getMapEmbedUrl, getMapSearchUrl, getWhatsAppUrl } from '../utils/visitUsUrls'
 
 afterEach(cleanup)
@@ -14,7 +15,7 @@ describe('visit us section', () => {
       map_lng: 31.2357,
       opening_hours_text: 'من ٩ صباحًا حتى ١٠ مساءً',
       whatsapp_number: '201012345678',
-    })} />)
+    })} />, { wrapper: TestProviders })
 
     expect(screen.getByRole('heading', { name: 'زورنا' })).toBeInTheDocument()
     expect(screen.getByText('شارع النيل، القاهرة')).toBeInTheDocument()
@@ -32,7 +33,7 @@ describe('visit us section', () => {
   })
 
   it('uses the address when either map coordinate is missing', () => {
-    render(<VisitUs settings={{ ...mergeShopSettings({ address: 'شارع 26 يوليو، القاهرة', map_lat: 30.04 }), map_lng: null }} />)
+    render(<VisitUs settings={{ ...mergeShopSettings({ address: 'شارع 26 يوليو، القاهرة', map_lat: 30.04 }), map_lng: null }} />, { wrapper: TestProviders })
 
     expect(screen.getByTitle('خريطة موقع منظفات الإيمان')).toHaveAttribute(
       'src',

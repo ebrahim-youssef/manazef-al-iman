@@ -38,3 +38,7 @@
 @media (prefers-reduced-motion: reduce) {
   .category-card-image img { transition: none; }
 }
+
+@media (max-width: 560px) {
+  .category-card-body { flex-direction: column; gap: 0; }
+}
