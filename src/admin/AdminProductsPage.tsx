@@ -1,14 +1,16 @@
 import { Plus, Spinner, Trash, X } from '@phosphor-icons/react'
-import { Combobox, InputBase, useCombobox } from '@mantine/core'
+import { ActionIcon, Button, Checkbox, Combobox, Group, Image, InputBase, NativeSelect, Text, Textarea, TextInput, UnstyledButton, useCombobox } from '@mantine/core'
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { calculatePrice } from '../pricing/price'
 import { formatEGP } from '../utils/format'
 import { detailImagePath } from '../utils/imageUrl'
+import { searchIndex } from '../search/search'
 import { useAdminClient } from './AdminClientContext'
 import { filterProducts, formatCairoDateTime, parseCairoDateTime, productImagePaths, validateProduct, writeProductWithImages, type ProductDraft } from './adminProducts'
 import { makeProductImages } from './productImage'
 import AdminCategories from './AdminCategoriesSection'
-import './AdminProductsPage.css'
+import AdminBrandsSection from './AdminBrandsSection'
+import styles from './AdminProductsPage.module.css'
 
 type Product = ProductDraft & { created_at: string; updated_at: string }
 type Category = { id: string; name: string; image_path: string; sort_order: number }
@@ -32,6 +34,8 @@ export default function AdminProductsPage() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [brandSearch, setBrandSearch] = useState('')
   const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() })
+  const searchCombobox = useCombobox({ onDropdownClose: () => searchCombobox.resetSelectedOption() })
+  const nameCombobox = useCombobox({ onDropdownClose: () => nameCombobox.resetSelectedOption() })
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('all')
   const [availableOnly, setAvailableOnly] = useState(false)
@@ -68,7 +72,13 @@ export default function AdminProductsPage() {
   // oxlint-disable-next-line react/set-state-in-effect -- Initial rows are loaded from Supabase after mount.
   useEffect(() => { void loadProducts() }, [loadProducts])
 
-  const visibleProducts = useMemo(() => filterProducts(products, { search, categoryId, availableOnly, featuredOnly }), [products, search, categoryId, availableOnly, featuredOnly])
+  const index = useMemo(() => ({
+    products: products.map((product) => ({ ...product, brand: brands.find((brand) => brand.id === product.brand_id)?.name ?? '', brandArabic: brands.find((brand) => brand.id === product.brand_id)?.arabic_name, category: product.category_id, image: product.image_path, price: product.price_egp })),
+    categories: categories.map((category) => ({ ...category, slug: category.id })),
+  }), [products, brands, categories])
+  const searchResults = useMemo(() => searchIndex(index, search), [index, search])
+  const nameSuggestions = useMemo(() => searchIndex({ products: index.products.map((product) => ({ ...product, brand: '', brandArabic: '', category: '' })), categories: [] }, editing?.id ? '' : editing?.name ?? '').products, [index, editing?.id, editing?.name])
+  const visibleProducts = useMemo(() => filterProducts(search.trim() ? searchResults.products : products, { search: '', categoryId, availableOnly, featuredOnly }), [products, search, searchResults, categoryId, availableOnly, featuredOnly])
 
   function openProduct(product?: Product) {
     setBrandSearch(brands.find((brand) => brand.id === product?.brand_id)?.name ?? '')
@@ -254,45 +264,59 @@ export default function AdminProductsPage() {
   }, previewTime) : null
 
   return (
-    <main className="admin-shell" dir="rtl">
-      <div className="admin-page admin-products-page">
-        <header className="admin-header">
-          <div className="admin-header-copy"><h1>المنتجات</h1><p>إدارة المنتجات والأسعار والصور</p></div>
-          <button className="admin-primary-button admin-products-add" type="button" onClick={() => openProduct()}><Plus size={18} /> إضافة</button>
+    <main className={styles['admin-shell']} dir="rtl">
+      <div className={styles['admin-page'] + ' ' + styles['admin-products-page']}>
+        <header className={styles['admin-header']}>
+          <div className={styles['admin-header-copy']}><h1>المنتجات</h1><p>إدارة المنتجات والأسعار والصور</p></div>
+          <Button className={styles['admin-products-add']} type="button" leftSection={<Plus size={18} />} onClick={() => openProduct()}>إضافة</Button>
         </header>
         <AdminCategories categories={categories} reload={loadProducts} />
-        {error && <p className="admin-error" role="alert">{error}</p>}
-        <div className="admin-products-filters">
-          <label className="admin-search"><span className="admin-visually-hidden">البحث بالاسم</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="ابحث باسم المنتج" /></label>
-          <select aria-label="تصفية حسب القسم" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+        <AdminBrandsSection brands={brands} reload={loadProducts} />
+        {error && <p className={styles['admin-error']} role="alert">{error}</p>}
+        <div className={styles['admin-products-filters']}>
+          <Combobox store={searchCombobox} hideDetached={false} onOptionSubmit={(id) => { const product = products.find((item) => item.id === id); if (product) openProduct(product); searchCombobox.closeDropdown() }}>
+            <Combobox.Target><TextInput aria-label="البحث بالاسم" value={search} placeholder="ابحث باسم المنتج" maxLength={60} onChange={(event) => { setSearch(event.currentTarget.value); searchCombobox.openDropdown(); searchCombobox.resetSelectedOption() }} onFocus={() => { if (search) searchCombobox.openDropdown() }} /></Combobox.Target>
+            <Combobox.Dropdown><Combobox.Options>{searchResults.products.slice(0, 6).map((product) => <Combobox.Option value={product.id} key={product.id}><Group wrap="nowrap" gap="sm"><Image src={product.image_path ? (/^https?:\/\//i.test(product.image_path) ? product.image_path : client.storage.from('catalog').getPublicUrl(product.image_path).data.publicUrl) : undefined} alt="" w={44} h={44} radius="sm" fit="cover" /><div><Text size="sm" fw={600}>{product.name}</Text><Text size="sm">{formatEGP(product.price_egp)}</Text></div></Group></Combobox.Option>)}{!searchResults.products.length && <Combobox.Empty>لا توجد منتجات مطابقة.</Combobox.Empty>}</Combobox.Options></Combobox.Dropdown>
+          </Combobox>
+          <NativeSelect aria-label="تصفية حسب القسم" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
             <option value="all">كل الأقسام</option>
             {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-          </select>
-          <label className="admin-product-filter"><input type="checkbox" checked={availableOnly} onChange={(event) => setAvailableOnly(event.target.checked)} /> المتوفر فقط</label>
-          <label className="admin-product-filter"><input type="checkbox" checked={featuredOnly} onChange={(event) => setFeaturedOnly(event.target.checked)} /> مختارات لك</label>
+          </NativeSelect>
+          <Checkbox label="المتوفر فقط" checked={availableOnly} onChange={(event) => setAvailableOnly(event.currentTarget.checked)} />
+          <Checkbox label="مختارات لك" checked={featuredOnly} onChange={(event) => setFeaturedOnly(event.currentTarget.checked)} />
         </div>
-        {loading ? <p className="admin-loading"><Spinner size={18} /> جارٍ تحميل المنتجات…</p> : visibleProducts.length === 0 ? <p className="admin-empty">لا توجد منتجات مطابقة.</p> : (
-          <ul className="admin-product-list">
+        {loading ? <p className={styles['admin-loading']}><Spinner size={18} /> جارٍ تحميل المنتجات…</p> : visibleProducts.length === 0 ? <p className={styles['admin-empty']}>لا توجد منتجات مطابقة.</p> : (
+          <ul className={styles['admin-product-list']}>
             {visibleProducts.map((product) => (
-              <li className="admin-product-row" key={product.id}>
-                <button type="button" className="admin-product-open" onClick={() => openProduct(product)}>
+              <li className={styles['admin-product-row']} key={product.id}>
+                <UnstyledButton type="button" className={styles['admin-product-open']} onClick={() => openProduct(product)}>
                   {product.image_path && <img src={/^https?:\/\//i.test(product.image_path) ? product.image_path : client.storage.from('catalog').getPublicUrl(product.image_path).data.publicUrl} alt="" />}
-                  <span><strong>{product.name}</strong><small>{categories.find((category) => category.id === product.category_id)?.name ?? 'قسم غير معروف'} · {formatEGP(product.price_egp)}</small></span>
-                </button>
-                <label className="admin-product-switch"><input type="checkbox" checked={product.is_available} onChange={() => void toggleProduct(product, 'is_available')} /> متوفر</label>
-                <label className="admin-product-switch"><input type="checkbox" checked={product.is_featured} onChange={() => void toggleProduct(product, 'is_featured')} /> مختار</label>
+                  <span><strong>{product.name}</strong><small>{brands.find((brand) => brand.id === product.brand_id)?.name} · {categories.find((category) => category.id === product.category_id)?.name ?? 'قسم غير معروف'} · {formatEGP(product.price_egp)}</small></span>
+                </UnstyledButton>
+                <Checkbox className={styles['admin-product-switch']} label="متوفر" checked={product.is_available} onChange={() => void toggleProduct(product, 'is_available')} />
+                <Checkbox className={styles['admin-product-switch']} label="مختار" checked={product.is_featured} onChange={() => void toggleProduct(product, 'is_featured')} />
               </li>
             ))}
           </ul>
         )}
       </div>
       {editing && (
-        <div className="admin-product-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setEditing(null) }}>
-          <section className="admin-product-modal" role="dialog" aria-modal="true" aria-labelledby="admin-product-form-title">
-            <header><h2 id="admin-product-form-title">{editing.id ? 'تعديل المنتج' : 'منتج جديد'}</h2><button type="button" aria-label="إغلاق" onClick={() => setEditing(null)} disabled={busy}><X size={20} /></button></header>
+        <div className={styles['admin-product-modal-backdrop']} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setEditing(null) }}>
+          <section className={styles['admin-product-modal']} role="dialog" aria-modal="true" aria-labelledby="admin-product-form-title">
+            <header><h2 id="admin-product-form-title">{editing.id ? 'تعديل المنتج' : 'منتج جديد'}</h2><ActionIcon variant="default" type="button" aria-label="إغلاق" onClick={() => setEditing(null)} disabled={busy}><X size={20} /></ActionIcon></header>
             <form onSubmit={(event) => void saveProduct(event)}>
-              <label>القسم<select required value={editing.category_id} onChange={(event) => setField('category_id', event.target.value)}><option value="" disabled>اختر القسم</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</select></label>
-              <label>اسم المنتج<input required value={editing.name} onChange={(event) => setField('name', event.target.value)} /></label>
+              <NativeSelect label="القسم" required withAsterisk={false} value={editing.category_id} onChange={(event) => setField('category_id', event.currentTarget.value)}><option value="" disabled>اختر القسم</option>{categories.map((category) => <option value={category.id} key={category.id}>{category.name}</option>)}</NativeSelect>
+              <Combobox store={nameCombobox} onOptionSubmit={(id) => {
+                const product = products.find((item) => item.id === id)
+                if (product) {
+                  setEditing((current) => current ? { ...current, name: product.name, category_id: product.category_id, brand_id: product.brand_id, description: product.description } : current)
+                  setBrandSearch(brands.find((brand) => brand.id === product.brand_id)?.name ?? '')
+                }
+                nameCombobox.closeDropdown()
+              }}>
+                <Combobox.Target><InputBase label="اسم المنتج" required withAsterisk={false} value={editing.name} onChange={(event) => { setField('name', event.currentTarget.value); if (!editing.id) nameCombobox.openDropdown() }} onFocus={() => { if (!editing.id && editing.name) nameCombobox.openDropdown() }} /></Combobox.Target>
+                <Combobox.Dropdown><Combobox.Options>{nameSuggestions.slice(0, 6).map((product) => <Combobox.Option value={product.id} key={product.id}>{product.name}</Combobox.Option>)}</Combobox.Options></Combobox.Dropdown>
+              </Combobox>
               <Combobox store={combobox} onOptionSubmit={(value) => void selectBrand(value)}>
                 <Combobox.Target><InputBase label="العلامة التجارية" aria-label="العلامة التجارية" required value={brandSearch} onChange={(event) => { setBrandSearch(event.currentTarget.value); setField('brand_id', ''); combobox.openDropdown() }} onFocus={() => combobox.openDropdown()} /></Combobox.Target>
                 <Combobox.Dropdown><Combobox.Options>
@@ -300,15 +324,15 @@ export default function AdminProductsPage() {
                   {brandSearch.trim() && <Combobox.Option value="$create">إضافة «{brandSearch.trim()}»</Combobox.Option>}
                 </Combobox.Options></Combobox.Dropdown>
               </Combobox>
-              <label>الوصف<textarea rows={3} value={editing.description} onChange={(event) => setField('description', event.target.value)} /></label>
-              <label>السعر بالجنيه<input required type="number" min="1" step="1" value={Number.isNaN(editing.price_egp) ? '' : editing.price_egp} onChange={(event) => setField('price_egp', event.target.value === '' ? Number.NaN : Number(event.target.value))} /></label>
-              <div className="admin-product-checks"><label><input type="checkbox" checked={editing.is_available} onChange={(event) => setField('is_available', event.target.checked)} /> متوفر</label><label><input type="checkbox" checked={editing.is_featured} onChange={(event) => setField('is_featured', event.target.checked)} /> مختار لك</label></div>
-              <fieldset><legend>عرض محدد المدة</legend><label>نوع العرض<select value={editing.sale_type} onChange={(event) => setField('sale_type', event.target.value as ProductDraft['sale_type'])}><option value="none">بدون عرض</option><option value="price">سعر محدد</option><option value="percent">نسبة خصم</option></select></label>{editing.sale_type !== 'none' && <><label>{editing.sale_type === 'price' ? 'سعر العرض بالجنيه' : 'نسبة الخصم'}<input type="number" min="1" max={editing.sale_type === 'percent' ? 90 : undefined} step="1" value={editing.sale_value ?? ''} onChange={(event) => setField('sale_value', event.target.value === '' ? null : Number(event.target.value))} /></label><label>يبدأ في<input type="datetime-local" value={editing.sale_starts_at ?? ''} onChange={(event) => setField('sale_starts_at', event.target.value || null)} /></label><label>ينتهي في<input type="datetime-local" value={editing.sale_ends_at ?? ''} onChange={(event) => setField('sale_ends_at', event.target.value || null)} /></label></>}</fieldset>
-              <fieldset><legend>عرض الجمعة</legend><label>نوع العرض<select value={editing.friday_type} onChange={(event) => setField('friday_type', event.target.value as ProductDraft['friday_type'])}><option value="none">بدون عرض</option><option value="price">سعر محدد</option><option value="percent">نسبة خصم</option></select></label>{editing.friday_type !== 'none' && <label>{editing.friday_type === 'price' ? 'سعر الجمعة بالجنيه' : 'نسبة خصم الجمعة'}<input type="number" min="1" max={editing.friday_type === 'percent' ? 90 : undefined} step="1" value={editing.friday_value ?? ''} onChange={(event) => setField('friday_value', event.target.value === '' ? null : Number(event.target.value))} /></label>}</fieldset>
-              {preview && <p className="admin-product-price-preview">السعر المعروض الآن: <strong>{formatEGP(preview.shownPrice)}</strong></p>}
-              <div className="admin-product-photo"><strong>صورة المنتج</strong>{(photoPreviewUrl || editing.image_path) && <img src={photoPreviewUrl || (/^https?:\/\//i.test(editing.image_path) ? editing.image_path : client.storage.from('catalog').getPublicUrl(editing.image_path).data.publicUrl)} alt="معاينة صورة المنتج" />}<label className="admin-secondary-button">التقط صورة<input type="file" accept="image/*" capture="environment" onChange={changePhoto} /></label><label className="admin-secondary-button">اختر من المعرض<input type="file" accept="image/*" onChange={changePhoto} /></label>{photo && <small>صورة جديدة، تُرفع عند الحفظ.</small>}</div>
-              {error && <p className="admin-error" role="alert">{error}</p>}
-              <footer><button className="admin-primary-button" type="submit" disabled={busy || !categories.length}>{busy ? 'جارٍ الحفظ…' : 'حفظ المنتج'}</button>{editing.id && <button className="admin-danger-button" type="button" disabled={busy} onClick={() => void deleteProduct()}><Trash size={17} /> حذف</button>}</footer>
+              <Textarea label="الوصف" rows={3} value={editing.description} onChange={(event) => setField('description', event.currentTarget.value)} />
+              <TextInput label="السعر بالجنيه" required withAsterisk={false} type="number" min="1" step="1" value={Number.isNaN(editing.price_egp) ? '' : editing.price_egp} onChange={(event) => setField('price_egp', event.currentTarget.value === '' ? Number.NaN : Number(event.currentTarget.value))} />
+              <div className={styles['admin-product-checks']}><Checkbox label="متوفر" checked={editing.is_available} onChange={(event) => setField('is_available', event.currentTarget.checked)} /><Checkbox label="مختار لك" checked={editing.is_featured} onChange={(event) => setField('is_featured', event.currentTarget.checked)} /></div>
+              <fieldset><legend>عرض محدد المدة</legend><NativeSelect label="نوع العرض" value={editing.sale_type} onChange={(event) => setField('sale_type', event.target.value as ProductDraft['sale_type'])}><option value="none">بدون عرض</option><option value="price">سعر محدد</option><option value="percent">نسبة خصم</option></NativeSelect>{editing.sale_type !== 'none' && <><TextInput label={editing.sale_type === 'price' ? 'سعر العرض بالجنيه' : 'نسبة الخصم'} type="number" min="1" max={editing.sale_type === 'percent' ? 90 : undefined} step="1" value={editing.sale_value ?? ''} onChange={(event) => setField('sale_value', event.target.value === '' ? null : Number(event.target.value))} /><TextInput label="يبدأ في" type="datetime-local" value={editing.sale_starts_at ?? ''} onChange={(event) => setField('sale_starts_at', event.target.value || null)} /><TextInput label="ينتهي في" type="datetime-local" value={editing.sale_ends_at ?? ''} onChange={(event) => setField('sale_ends_at', event.target.value || null)} /></>}</fieldset>
+              <fieldset><legend>عرض الجمعة</legend><NativeSelect label="نوع العرض" value={editing.friday_type} onChange={(event) => setField('friday_type', event.target.value as ProductDraft['friday_type'])}><option value="none">بدون عرض</option><option value="price">سعر محدد</option><option value="percent">نسبة خصم</option></NativeSelect>{editing.friday_type !== 'none' && <TextInput label={editing.friday_type === 'price' ? 'سعر الجمعة بالجنيه' : 'نسبة خصم الجمعة'} type="number" min="1" max={editing.friday_type === 'percent' ? 90 : undefined} step="1" value={editing.friday_value ?? ''} onChange={(event) => setField('friday_value', event.target.value === '' ? null : Number(event.target.value))} />}</fieldset>
+              {preview && <p className={styles['admin-product-price-preview']}>السعر المعروض الآن: <strong>{formatEGP(preview.shownPrice)}</strong></p>}
+              <div className={styles['admin-product-photo']}><strong>صورة المنتج</strong>{(photoPreviewUrl || editing.image_path) && <img src={photoPreviewUrl || (/^https?:\/\//i.test(editing.image_path) ? editing.image_path : client.storage.from('catalog').getPublicUrl(editing.image_path).data.publicUrl)} alt="معاينة صورة المنتج" />}<Button component="label" variant="default">التقط صورة<input type="file" accept="image/*" capture="environment" onChange={changePhoto} /></Button><Button component="label" variant="default">اختر من المعرض<input type="file" accept="image/*" onChange={changePhoto} /></Button>{photo && <small>صورة جديدة، تُرفع عند الحفظ.</small>}</div>
+              {error && <p className={styles['admin-error']} role="alert">{error}</p>}
+              <footer><Button type="submit" disabled={busy || !categories.length}>{busy ? 'جارٍ الحفظ…' : 'حفظ المنتج'}</Button>{editing.id && <Button color="red" variant="light" type="button" disabled={busy} leftSection={<Trash size={17} />} onClick={() => void deleteProduct()}>حذف</Button>}</footer>
             </form>
           </section>
         </div>
