@@ -72,6 +72,8 @@
 .admin-categories[open] > summary svg { transform: rotate(-90deg); }
 .admin-categories > summary:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; border-radius: var(--radius); }
 .admin-categories .admin-error { margin: 0 14px 10px; }
+.admin-brand-row { padding: 8px 6px; border-top: 1px solid var(--border); }
+.admin-brand-row > span { font-weight: 600; }
 .admin-category-list { display: grid; gap: 0; margin: 0; padding: 0 14px 8px; list-style: none; border-top: 1px solid var(--border); }
 .admin-category-list li { display: grid; grid-template-columns: minmax(0, 1fr) 44px 44px; align-items: center; gap: 6px; padding: 8px 0; }
 .admin-category-list li + li { border-top: 1px solid var(--border); }

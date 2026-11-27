@@ -1,4 +1,4 @@
-import { Container, createTheme } from '@mantine/core'
+import { Checkbox, Container, createTheme } from '@mantine/core'
 
 export const theme = createTheme({
   colors: {
@@ -11,5 +11,9 @@ export const theme = createTheme({
   radius: { sm: '10px', md: '14px' },
   defaultRadius: 'md',
   shadows: { sm: '0 1px 2px rgba(0, 0, 0, 0.04)', md: '0 6px 20px rgba(17, 24, 39, 0.06)' },
-  components: { Container: Container.extend({ defaultProps: { size: '1280px', px: 0 } }) },
+  components: {
+    Container: Container.extend({ defaultProps: { size: '1280px', px: 0 } }),
+    // The md default radius turns a 20px checkbox into a circle that reads as a radio button.
+    Checkbox: Checkbox.extend({ defaultProps: { radius: 6 } }),
+  },
 })

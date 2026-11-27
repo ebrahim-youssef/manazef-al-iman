@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Box, UnstyledButton } from '@mantine/core';
 import { MagnifyingGlass } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
@@ -66,26 +67,26 @@ function CategoryListing({ slug, categories, products }) {
 
   if (!category) {
     return (
-      <Box className="container section">
-        <Box className="empty-state">
-          <Box className="empty-icon" aria-hidden="true"><MagnifyingGlass weight="duotone" /></Box>
+      <Box className={[shared['container'], shared['section']].join(' ')}>
+        <Box className={shared['empty-state']}>
+          <Box className={shared['empty-icon']} aria-hidden="true"><MagnifyingGlass weight="duotone" /></Box>
           <h3>القسم غير موجود</h3>
           <p>ارجع للرئيسية واختر قسمًا من القائمة.</p>
-          <Link to="/" className="btn btn-primary" style={{ marginTop: 16 }}>العودة للرئيسية</Link>
+          <Link to="/" className={[shared['btn'], shared['btn-primary']].join(' ')} style={{ marginTop: 16 }}>العودة للرئيسية</Link>
         </Box>
       </Box>
     );
   }
 
   return (
-    <section className="page">
-      <Box className="container">
-        <nav className="breadcrumb" aria-label="مسار التنقل">
+    <section className={shared['page']}>
+      <Box className={shared['container']}>
+        <nav className={shared['breadcrumb']} aria-label="مسار التنقل">
           <Link to="/">الرئيسية</Link>
           <span aria-hidden="true">/</span>
           <span aria-current="page">{category.name}</span>
         </nav>
-        <header className="page-head">
+        <header className={shared['page-head']}>
           <h1>{category.name}</h1>
           <p>{category.description}</p>
         </header>
@@ -117,7 +118,7 @@ function CategoryListing({ slug, categories, products }) {
               <UnstyledButton
                 key={b}
                 type="button"
-                className={styles.chip + (brand === b ? ' ' + styles.active : '')}
+                  className={[styles.chip, brand === b ? styles.active : ''].join(' ')}
                 aria-pressed={brand === b}
                 onClick={() => setBrand(b)}
               >

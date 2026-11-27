@@ -7,7 +7,7 @@
   padding-block: 28px;
   background: var(--primary-soft);
 }
-.home-order :global(.section-title) {
+.home-order h2 {
   text-align: center;
   font-size: 1.35rem;
 }
@@ -106,11 +106,11 @@
   max-width: 520px;
   line-height: 1.8;
 }
-.wholesale-banner :global(.btn-primary) {
+.wholesale-banner a {
   background: #fff;
   color: var(--primary-dark);
 }
-.wholesale-banner :global(.btn-primary):hover {
+.wholesale-banner a:hover {
   background: #f0f7f2;
 }
 .wholesale-banner-image img {

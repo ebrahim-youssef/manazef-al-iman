@@ -134,7 +134,7 @@ describe('store routes', () => {
     const router = getRouter()
     router.update({ history: createMemoryHistory({ initialEntries: [path] }) })
     render(<RouterProvider router={router} />)
-    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+    expect(await screen.findByText(heading, { selector: 'h1' })).toBeInTheDocument()
   })
 
   it('renders the owner frame without customer cart or visit section', async () => {

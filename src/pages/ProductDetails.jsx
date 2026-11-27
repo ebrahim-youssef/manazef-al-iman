@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Box, UnstyledButton } from '@mantine/core';
 import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
@@ -32,12 +33,12 @@ export default function ProductDetails() {
   if (catalog.unavailable) return <CatalogUnavailable />;
   if (!product) {
     return (
-      <Box className="container section">
-        <Box className="empty-state">
-          <Box className="empty-icon" aria-hidden="true"><Package weight="duotone" /></Box>
+      <Box className={[shared['container'], shared['section']].join(' ')}>
+        <Box className={shared['empty-state']}>
+          <Box className={shared['empty-icon']} aria-hidden="true"><Package weight="duotone" /></Box>
           <h3>المنتج غير موجود</h3>
           <p>قد يكون المنتج تم حذفه أو الرابط غير صحيح.</p>
-          <Link to="/" className="btn btn-primary" style={{ marginTop: 16 }}>العودة للرئيسية</Link>
+          <Link to="/" className={[shared['btn'], shared['btn-primary']].join(' ')} style={{ marginTop: 16 }}>العودة للرئيسية</Link>
         </Box>
       </Box>
     );
@@ -55,23 +56,23 @@ export default function ProductDetails() {
 
   return (
     <>
-      <section className="page">
-        <Box className="container">
-          <nav className="breadcrumb" aria-label="مسار التنقل">
+      <section className={shared['page']}>
+        <Box className={shared['container']}>
+          <nav className={shared['breadcrumb']} aria-label="مسار التنقل">
             <Link to="/">الرئيسية</Link>
             {category && <><span aria-hidden="true">/</span><Link to={`/category/${category.slug}`}>{category.name}</Link></>}
           </nav>
           <Box className={styles['product-details']}>
             <Box className={styles['product-details-image']}>
               <img src={product.detailImage} alt={product.name} />
-              {discount > 0 && <span className={'badge' + ' ' + 'badge-discount' + ' ' + styles['detail-badge']}>خصم {discount}%</span>}
+              {discount > 0 && <span className={[shared['badge'], shared['badge-discount'], styles['detail-badge']].join(' ')}>خصم {discount}%</span>}
             </Box>
             <Box className={styles['product-details-info']}>
               <p className={styles['detail-brand']}>{product.brand}</p>
               <h1>{product.name}</h1>
               <Box className={styles['detail-pricing']}>
-                <span className={styles['detail-price'] + ' ' + 'price'}>{formatEGP(product.price)}</span>
-                {product.originalPrice ? <span className={styles['detail-old'] + ' ' + 'price'}>{formatEGP(product.originalPrice)}</span> : null}
+                <span className={[styles['detail-price'], shared['price']].join(' ')}>{formatEGP(product.price)}</span>
+                {product.originalPrice ? <span className={[styles['detail-old'], shared['price']].join(' ')}>{formatEGP(product.originalPrice)}</span> : null}
               </Box>
               {product.fridayPrice !== null && !product.isFridayActive && (
                 <p className={styles['detail-friday-price']}>الجمعة بـ {formatEGP(product.fridayPrice)}</p>
@@ -80,7 +81,7 @@ export default function ProductDetails() {
               {product.cartonSize ? (
                 <p className={styles['detail-unit']}>محتوى الكرتونة: <strong>{product.cartonSize} عبوة</strong></p>
               ) : null}
-              <p className={styles['detail-availability'] + ' ' + (product.available ? styles.ok : styles.no)}>
+              <p className={[styles['detail-availability'], product.available ? styles.ok : styles.no].join(' ')}>
                 {product.available ? 'متوفر في المخزون' : 'غير متوفر حاليًا'}
               </p>
               <p className={styles['detail-desc']}>{product.description}</p>
@@ -99,7 +100,7 @@ export default function ProductDetails() {
                   <UnstyledButton type="button" disabled={qty >= MAX_ITEM_QUANTITY} onClick={() => setQty((q) => q + 1)} aria-label="زيادة الكمية"><Plus weight="bold" /></UnstyledButton>
                 </Box>
                 {limitReached && <p role="status">احذف منتجًا من السلة لإضافة منتج آخر.</p>}
-                <UnstyledButton type="button" className={'btn' + ' ' + 'btn-primary' + ' ' + styles['detail-add']} onClick={handleAdd} disabled={!product.available}>
+                <UnstyledButton type="button" className={[shared['btn'], shared['btn-primary'], styles['detail-add']].join(' ')} onClick={handleAdd} disabled={!product.available}>
                   {product.available && <ShoppingCart weight="bold" aria-hidden="true" />}
                   {product.available ? 'أضف إلى السلة' : 'غير متوفر'}
                 </UnstyledButton>
@@ -109,10 +110,10 @@ export default function ProductDetails() {
 
           {related.length > 0 && (
             <Box className={styles['related-section']}>
-              <Box className="section-header">
+              <Box className={shared['section-header']}>
                 <Box>
-                  <h2 className="section-title">منتجات ذات صلة</h2>
-                  <p className="section-subtitle">منتجات أخرى قد تهمك من نفس القسم.</p>
+                  <h2 className={shared['section-title']}>منتجات ذات صلة</h2>
+                  <p className={shared['section-subtitle']}>منتجات أخرى قد تهمك من نفس القسم.</p>
                 </Box>
               </Box>
               <ProductGrid products={related} />

@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { Box } from '@mantine/core';
 import { Clock, MapPin, WhatsappLogo } from '@phosphor-icons/react'
 import type { mergeShopSettings } from '../config/shopDefaults'
@@ -8,10 +9,10 @@ type ShopSettings = ReturnType<typeof mergeShopSettings>
 
 export default function VisitUs({ settings }: { settings: ShopSettings }) {
   return (
-    <section className="visit-section section" aria-labelledby="visit-title">
-      <Box className="container">
-        <Box className="section-header">
-          <h2 className="section-title" id="visit-title">زورنا</h2>
+    <section className={shared['section']} aria-labelledby="visit-title">
+      <Box className={shared['container']}>
+        <Box className={shared['section-header']}>
+          <h2 className={shared['section-title']} id="visit-title">زورنا</h2>
         </Box>
         <Box className={styles['visit-layout']}>
           <Box className={styles['visit-map']}>
@@ -39,11 +40,11 @@ export default function VisitUs({ settings }: { settings: ShopSettings }) {
               </Box>
             </Box>
             <Box className={styles['visit-actions']}>
-              <a className="btn btn-outline" href={getMapSearchUrl(settings.map_lat, settings.map_lng, settings.address)} target="_blank" rel="noopener noreferrer">
+              <a className={[shared['btn'], shared['btn-outline']].join(' ')} href={getMapSearchUrl(settings.map_lat, settings.map_lng, settings.address)} target="_blank" rel="noopener noreferrer">
                 <MapPin aria-hidden="true" />
                 افتح في الخرائط
               </a>
-              <a className="btn btn-primary" href={getWhatsAppUrl(settings.whatsapp_number)}>
+              <a className={[shared['btn'], shared['btn-primary']].join(' ')} href={getWhatsAppUrl(settings.whatsapp_number)}>
                 <WhatsappLogo aria-hidden="true" />
                 تواصل معنا على واتساب
               </a>

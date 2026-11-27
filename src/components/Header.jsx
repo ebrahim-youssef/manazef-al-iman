@@ -1,3 +1,4 @@
+import shared from '../Storefront.module.css'
 import { useState } from 'react';
 import { Link, useLoaderData, useNavigate } from '@tanstack/react-router';
 import { MagnifyingGlass, ShoppingCart, WhatsappLogo, X } from '@phosphor-icons/react';
@@ -46,10 +47,10 @@ export default function Header() {
 
   return (
     <header className={styles['site-header']}>
-      <Container className={'container' + ' ' + styles['header-bar']}>
+      <Container className={[shared['container'], styles['header-bar']].join(' ')}>
         <Burger
           type="button"
-          className={styles['icon-btn'] + ' ' + styles['menu-toggle']}
+          className={[styles['icon-btn'], styles['menu-toggle']].join(' ')}
           aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
           aria-expanded={isMenuOpen}
           aria-controls="site-nav"
@@ -95,7 +96,7 @@ export default function Header() {
           >
             {isSearchOpen ? <X weight="bold" /> : <MagnifyingGlass />}
           </ActionIcon>
-          <Link to="/cart" className={styles['icon-btn'] + ' ' + styles['cart-btn']} aria-label={`سلة التسوق، ${itemCount} قطعة`} onClick={closeAll}>
+          <Link to="/cart" className={[styles['icon-btn'], styles['cart-btn']].join(' ')} aria-label={`سلة التسوق، ${itemCount} قطعة`} onClick={closeAll}>
             <ShoppingCart />
             {itemCount > 0 && <span className={styles['cart-count']}>{itemCount}</span>}
           </Link>
@@ -105,7 +106,7 @@ export default function Header() {
       {isSearchOpen && (
         <div id="site-search" className={styles['search-panel']}>
           <form
-            className={'container' + ' ' + styles['search-panel-form']}
+            className={[shared['container'], styles['search-panel-form']].join(' ')}
             role="search"
             onSubmit={submitSearch}
             onKeyDown={(e) => e.key === 'Escape' && setIsSearchOpen(false)}
@@ -135,7 +136,7 @@ export default function Header() {
               {index?.unavailable && <Combobox.Empty>تعذر تحميل البحث، حاول تحديث الصفحة.</Combobox.Empty>}
               {results && results.products.length > 0 && <Combobox.Group label="المنتجات">
                 {results.products.slice(0, 6).map((product) => <Combobox.Option key={product.id} value={`product:${product.id}`}>
-                  <Group wrap="nowrap" gap="sm"><Image src={product.image || undefined} alt="" w={44} h={44} radius="sm" fit="cover" bg="gray.1" style={{ flexShrink: 0 }} /><div style={{ minWidth: 0 }}><Text size="sm" fw={600} lineClamp={1}>{product.name}</Text><Text size="sm" c="iman.7" className="price">{formatEGP(product.price)}</Text></div></Group>
+                  <Group wrap="nowrap" gap="sm"><Image src={product.image || undefined} alt="" w={44} h={44} radius="sm" fit="cover" bg="gray.1" style={{ flexShrink: 0 }} /><div style={{ minWidth: 0 }}><Text size="sm" fw={600} lineClamp={1}>{product.name}</Text><Text size="sm" c="iman.7" className={shared['price']}>{formatEGP(product.price)}</Text></div></Group>
                 </Combobox.Option>)}
               </Combobox.Group>}
               {results && results.categories.length > 0 && <Combobox.Group label="الأقسام">

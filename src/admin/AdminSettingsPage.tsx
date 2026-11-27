@@ -6,6 +6,7 @@ import { validateShopSettings, type ShopSettingsForm } from './adminSettings'
 import { shopDefaults } from '../config/shopDefaults'
 import ShopLocationPicker from './ShopLocationPicker'
 import styles from './AdminSettingsPage.module.css'
+import adminStyles from './AdminArea.module.css'
 
 const emptySettings: ShopSettingsForm = {
   shop_name: '',
@@ -133,11 +134,11 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <main className="admin-shell" dir="rtl">
-      <div className={`admin-page ${styles.page}`}>
-        <header className="admin-header"><div className="admin-header-copy"><h1>إعدادات المتجر</h1><p>تظهر التغييرات على الموقع بعد الحفظ.</p></div></header>
-        {isLoading && <p className="admin-loading" role="status">جارٍ تحميل الإعدادات…</p>}
-        {loadError && <p className="admin-error" role="alert">{loadError}</p>}
+    <main className={adminStyles['admin-shell']} dir="rtl">
+      <div className={`${adminStyles['admin-page']} ${styles.page}`}>
+        <header className={adminStyles['admin-header']}><div className={adminStyles['admin-header-copy']}><h1>إعدادات المتجر</h1><p>تظهر التغييرات على الموقع بعد الحفظ.</p></div></header>
+        {isLoading && <p className={adminStyles['admin-loading']} role="status">جارٍ تحميل الإعدادات…</p>}
+        {loadError && <p className={adminStyles['admin-error']} role="alert">{loadError}</p>}
         {!isLoading && !loadError && (
           <form className={styles.form} onSubmit={saveSettings} noValidate>
             <fieldset className={styles.fields} disabled={isSaving}>

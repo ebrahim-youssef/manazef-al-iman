@@ -1,6 +1,8 @@
-import { Button, Group, Paper, TextInput } from '@mantine/core'
+import { Button, Group, Paper, Stack, TextInput } from '@mantine/core'
+import { CaretLeft } from '@phosphor-icons/react'
 import { useState, type FormEvent } from 'react'
 import { useAdminClient } from './AdminClientContext'
+import styles from './AdminProductsPage.module.css'
 
 type Brand = { id: string; name: string; arabic_name: string | null }
 
@@ -35,13 +37,17 @@ export default function AdminBrandsSection({ brands, reload }: { brands: Brand[]
     setBusy(false)
   }
 
-  return <Paper component="details" withBorder p="md" mb="md" onToggle={(event) => setIsOpen(event.currentTarget.open)}>
-    <summary>العلامات التجارية</summary>
-    {error && <p role="alert">{error}</p>}
-    {isOpen && brands.map((brand) => <Group key={brand.id} justify="space-between" mt="sm">
-      <span>{brand.name}</span>
-      <Group gap="xs"><Button variant="default" disabled={busy} aria-label={`تعديل ${brand.name}`} onClick={() => { setEditing(brand); setError('') }}>تعديل</Button><Button color="red" variant="subtle" disabled={busy} aria-label={`حذف ${brand.name}`} onClick={() => void remove(brand)}>حذف</Button></Group>
-    </Group>)}
-    {editing && <form onSubmit={(event) => void save(event)}><TextInput label="اسم العلامة التجارية" value={editing.name} onChange={(event) => setEditing({ ...editing, name: event.currentTarget.value })} /><Group mt="sm"><Button type="submit" disabled={busy}>حفظ العلامة</Button><Button variant="default" type="button" onClick={() => setEditing(null)}>إلغاء</Button></Group></form>}
+  return <Paper component="details" className={styles['admin-categories']} onToggle={(event) => setIsOpen(event.currentTarget.open)}>
+    <summary><span><strong>العلامات التجارية</strong> عدّل الاسم أو احذف غير المستخدم</span><CaretLeft size={18} aria-hidden="true" /></summary>
+    {error && <p className={styles['admin-error']} role="alert">{error}</p>}
+    {isOpen && <Stack gap={0} px="sm" pb="sm">{brands.map((brand) => editing?.id === brand.id
+      ? <form key={brand.id} className={styles['admin-brand-row']} onSubmit={(event) => void save(event)}>
+        <TextInput label="اسم العلامة التجارية" value={editing.name} autoFocus onChange={(event) => setEditing({ ...editing, name: event.currentTarget.value })} />
+        <Group gap="xs" mt="xs"><Button type="submit" size="xs" disabled={busy}>حفظ العلامة</Button><Button variant="default" size="xs" type="button" onClick={() => setEditing(null)}>إلغاء</Button></Group>
+      </form>
+      : <Group key={brand.id} className={styles['admin-brand-row']} justify="space-between" wrap="nowrap">
+        <span>{brand.name}</span>
+        <Group gap={4} wrap="nowrap"><Button variant="subtle" size="xs" disabled={busy} aria-label={`تعديل ${brand.name}`} onClick={() => { setEditing(brand); setError('') }}>تعديل</Button><Button color="red" variant="subtle" size="xs" disabled={busy} aria-label={`حذف ${brand.name}`} onClick={() => void remove(brand)}>حذف</Button></Group>
+      </Group>)}</Stack>}
   </Paper>
 }

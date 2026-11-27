@@ -5,7 +5,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { AdminClientContext } from './AdminClientContext'
 import styles from './AdminArea.module.css'
-import './AdminPage.css'
 
 type AdminSession = Awaited<ReturnType<SupabaseClient['auth']['getSession']>>['data']['session']
 
