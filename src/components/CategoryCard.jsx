@@ -6,7 +6,7 @@ export default function CategoryCard({ category, productCount }) {
   return (
     <Link to={`/category/${category.slug}`} className={styles['category-card']}>
       <Box className={styles['category-card-image']}>
-        <img src={category.image} alt="" loading="lazy" />
+        {category.image && <img src={category.image} alt="" loading="lazy" />}
       </Box>
       <Box className={styles['category-card-body']}>
         <h3>{category.name}</h3>

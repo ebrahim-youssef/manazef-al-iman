@@ -64,7 +64,7 @@ export default function ProductDetails() {
           </nav>
           <Box className={styles['product-details']}>
             <Box className={styles['product-details-image']}>
-              <img src={product.detailImage} alt={product.name} />
+              {product.detailImage && <img src={product.detailImage} alt={product.name} />}
               {discount > 0 && <span className={[shared['badge'], shared['badge-discount'], styles['detail-badge']].join(' ')}>خصم {discount}%</span>}
             </Box>
             <Box className={styles['product-details-info']}>

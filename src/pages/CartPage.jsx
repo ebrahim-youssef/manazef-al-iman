@@ -281,7 +281,7 @@ export default function CartPage() {
                 return (
                   <div className={`${styles['cart-item']}${line.available ? '' : ` ${styles.unavailable}`}`} key={item.id}>
                     {line.available ? (
-                      <Link to={`/product/${item.id}`} className={styles['cart-item-image']}><img src={line.image} alt={line.name} /></Link>
+                      <Link to={`/product/${item.id}`} className={styles['cart-item-image']}>{line.image && <img src={line.image} alt={line.name} />}</Link>
                     ) : <div className={[styles['cart-item-image'], styles['unavailable-image']].join(' ')} aria-hidden="true"><ShoppingCart /></div>}
                     <div className={styles['cart-item-info']}>
                       {line.available ? <Link to={`/product/${item.id}`} className={styles['cart-item-name']}>{line.name}</Link> : <span className={styles['cart-item-name']}>{line.name}</span>}
@@ -319,7 +319,7 @@ export default function CartPage() {
                 {!settings.delivery_areas?.length && <p className={styles['checkout-hint']}>لم تُضف مناطق التوصيل بعد. <a href={fallbackUrl}>تواصل معنا عبر واتساب</a> لتحديد منطقتك.</p>}
                 {error && <div className={styles['checkout-error']} role="alert"><p>{error}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
                 {turnstileLoadFailed && !error && <div className={styles['checkout-error']} role="alert"><p>{CHECKOUT_FAILURE_MESSAGE}</p><a href={fallbackUrl}>تواصل معنا عبر واتساب</a></div>}
-                <Button type="submit" className={[shared['btn'], shared['btn-primary'], styles['whatsapp-btn']].join(' ')} disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
+                <Button type="submit" h="auto" className={[shared['btn'], shared['btn-primary'], styles['whatsapp-btn']].join(' ')} disabled={isSubmitting || refreshError || !formLoaded || !linesLoaded || (!availableCount && !hasPendingCheckout) || !settings.delivery_areas?.length || !turnstileReady || turnstileLoadFailed}>
                   <WhatsappLogo weight="bold" aria-hidden="true" />
                   {isSubmitting ? 'جارٍ تسجيل الطلب…' : 'تأكيد الطلب عبر واتساب'}
                 </Button>

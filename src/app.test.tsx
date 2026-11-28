@@ -168,6 +168,14 @@ describe('store routes', () => {
     expect(screen.queryByText(/وحدة البيع|لكل العبوة/)).not.toBeInTheDocument()
   })
 
+  it.each(['/category/cosmetics', '/product/cos-1'])('renders no broken image for a product without a photo at %s', async (path) => {
+    const router = getRouter()
+    router.update({ history: createMemoryHistory({ initialEntries: [path] }) })
+    render(<RouterProvider router={router} />)
+    await screen.findAllByText('شامبو Sunsilk لشعر ناعم 600 مل')
+    expect(document.querySelectorAll('img[src=""], img:not([src])')).toHaveLength(0)
+  })
+
   it('keeps carton content on a wholesale product page', async () => {
     const wholesaleProduct = {
       ...catalogFixture.products[0]!, category: 'wholesale', unitType: 'wholesale', cartonSize: 12,

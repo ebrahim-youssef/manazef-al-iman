@@ -35,7 +35,7 @@ export default function ProductCard({ product }) {
   return (
     <article className={styles['product-card']}>
       <Link to={`/product/${product.id}`} className={styles['product-card-image-wrap']}>
-        <img src={product.image} alt={product.name} className={styles['product-card-image']} loading="lazy" />
+        {product.image && <img src={product.image} alt={product.name} className={styles['product-card-image']} loading="lazy" />}
         {discount > 0 && <span className={[shared['badge'], shared['badge-discount'], styles['product-card-badge']].join(' ')}>خصم {discount}%</span>}
         {!product.available && <span className={[shared['badge'], shared['badge-out'], styles['product-card-badge']].join(' ')}>غير متوفر</span>}
       </Link>
